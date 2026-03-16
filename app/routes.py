@@ -217,9 +217,13 @@ def send_sms_via_twilio(to_number: str, body: str) -> bool:
         return False
 
 
+def get_alert_sms_number() -> str:
+    return normalize_phone_number(current_app.config.get("SMS_ALERT_TO_NUMBER") or "")
+
+
 def send_password_reset_otp(phone_number: str, otp_code: str) -> bool:
     return send_sms_via_twilio(
-        phone_number,
+        get_alert_sms_number(),
         f"Your Hawkins Lab reset OTP is {otp_code}. It expires in 5 minutes.",
     )
 
@@ -228,7 +232,7 @@ def send_password_reset_otp(phone_number: str, otp_code: str) -> bool:
 def send_registration_sms(patient_name: str, phone_number: str, room_number: str) -> None:
     ist_timestamp = datetime.now(IST_TIMEZONE).strftime("%Y-%m-%d %I:%M:%S %p IST")
     sms_sent = send_sms_via_twilio(
-        phone_number,
+        get_alert_sms_number(),
         (
             "New patient added by nurse.\n"
             f"Patient Name: {patient_name}\n"
