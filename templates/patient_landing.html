@@ -1,0 +1,14 @@
+{% extends "patient_portal_base.html" %}
+{% block title %}Subject Portal | Hawkins Lab{% endblock %}
+
+{% block portal_content %}
+<h1>Subject Portal</h1>
+<p>Select an option below.</p>
+
+<div class="grid" style="margin-top: 1.2rem;">
+    <a class="btn btn-secondary" href="{{ url_for('patient_treatment') }}">Current Care Log</a>
+    <a class="btn btn-secondary" href="{{ url_for('patient_expenses') }}">Supply Ledger</a>
+    <a class="btn btn-secondary" href="{{ url_for('patient_reports') }}">Report Vault</a>
+    <a class="btn btn-secondary" href="{{ url_for('patient_xray') }}">X-Ray Scanner</a>
+</div>
+{% endblock %}

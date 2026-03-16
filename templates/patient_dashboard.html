@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Subject Dashboard | Hawkins Lab{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1>Subject Dashboard</h1>
+    <p>Family or subject can view staff-updated care details and uploaded reports.</p>
+
+    <table>
+        <tbody>
+            <tr>
+                <th>Subject Name</th>
+                <td>{{ patient.patient_name }}</td>
+            </tr>
+            <tr>
+                <th>Room</th>
+                <td>{{ patient.room_number or "Unassigned" }}</td>
+            </tr>
+            <tr>
+                <th>Medication Log</th>
+                <td>{{ care_record.medications or "No updates yet" }}</td>
+            </tr>
+            <tr>
+                <th>Injection Log</th>
+                <td>{{ care_record.injections or "No updates yet" }}</td>
+            </tr>
+            <tr>
+                <th>Prescription Log</th>
+                <td>{{ care_record.prescriptions or "No updates yet" }}</td>
+            </tr>
+            <tr>
+                <th>Notes</th>
+                <td>{{ care_record.notes or "No updates yet" }}</td>
+            </tr>
+            <tr>
+                <th>Last Updated</th>
+                <td>
+                    {% if care_record.updated_at %}
+                        {{ care_record.updated_at | ist_datetime }}
+                    {% else %}
+                        No updates yet
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 style="margin-top: 1.5rem;">Upload Report (Subject Only)</h2>
+    <p>Upload PDF directly or camera image (JPG/PNG), which is stored as PDF.</p>
+    <form method="post" action="{{ url_for('patient_upload_report') }}" enctype="multipart/form-data">
+        {{ upload_form.hidden_tag() }}
+        <div class="form-group">
+            <label for="report_file">Report File</label>
+            <input id="report_file" name="report_file" type="file" accept=".pdf,.jpg,.jpeg,.png" required>
+        </div>
+        <button class="btn btn-inline" type="submit">Upload to Vault</button>
+    </form>
+
+    <h2 style="margin-top: 1.5rem;">Report Vault</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Original File</th>
+                <th>Uploaded At</th>
+                <th>Open</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in reports %}
+            <tr>
+                <td>{{ report.original_filename }}</td>
+                <td>{{ report.uploaded_at | ist_datetime }}</td>
+                <td><a href="{{ url_for('view_report', filename=report.saved_filename) }}" target="_blank">Open</a></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3">No reports in the vault yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

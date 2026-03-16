@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Staff Desk Login | Hawkins Lab{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth_slider.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-slider" aria-hidden="true">
+    <div class="auth-slide slide-red"></div>
+    <div class="auth-slide slide-blue"></div>
+    <div class="auth-slide slide-green"></div>
+</div>
+<section class="card" style="max-width: 520px; margin: 0 auto;">
+    <h1>Hopper Desk Login</h1>
+    <p>Use staff credentials to access the control room.</p>
+
+    <form method="post" action="{{ url_for('nurse_login') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="hospital_code">Hospital Code</label>
+            <input id="hospital_code" name="hospital_code" type="text" placeholder="Enter hospital code" required>
+        </div>
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" placeholder="Enter username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" placeholder="Enter password" required>
+        </div>
+
+        <button class="btn" type="submit">Enter Control Room</button>
+    </form>
+
+    <div class="links">
+        <a href="{{ url_for('home') }}">Back to gateway</a>
+    </div>
+</section>
+{% endblock %}

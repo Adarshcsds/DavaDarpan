@@ -1,0 +1,91 @@
+{% extends "patient_portal_base.html" %}
+{% block title %}Current Care Log | Subject{% endblock %}
+
+{% block portal_content %}
+<h1>Current Care Log</h1>
+<p>View staff-updated medications, injections, and prescriptions.</p>
+
+{% if care_record is none %}
+<p>Enter your hospital code to register this admission before continuing.</p>
+<form method="post" action="{{ url_for('patient_treatment') }}" style="max-width: 420px;">
+    {{ code_form.hidden_tag() }}
+    <div class="form-group">
+        <label for="hospital_code">Hospital Code</label>
+        <input id="hospital_code" name="hospital_code" type="text" placeholder="Enter hospital code" required>
+    </div>
+    <button class="btn btn-inline" type="submit">Register Code</button>
+</form>
+{% else %}
+<p><strong>Hospital Code:</strong> {{ patient.hospital_code }}</p>
+
+<table>
+    <tbody>
+        <tr>
+            <th>Subject Name</th>
+            <td>{{ patient.patient_name }}</td>
+        </tr>
+        <tr>
+            <th>Room</th>
+            <td>{{ patient.room_number or "Unassigned" }}</td>
+        </tr>
+        <tr>
+            <th>Medication Log</th>
+            <td>{{ care_record.medications or "No updates yet" }}</td>
+        </tr>
+        <tr>
+            <th>Injection Log</th>
+            <td>{{ care_record.injections or "No updates yet" }}</td>
+        </tr>
+        <tr>
+            <th>Prescription Log</th>
+            <td>{{ care_record.prescriptions or "No updates yet" }}</td>
+        </tr>
+        <tr>
+            <th>Field Notes</th>
+            <td>{{ care_record.notes or "No updates yet" }}</td>
+        </tr>
+        <tr>
+            <th>Last Updated</th>
+            <td>{{ care_record.updated_at | ist_datetime }}</td>
+        </tr>
+        <tr>
+            <th>Last Updated By</th>
+            <td>{{ last_updated_by_nurse or "No nurse update yet" }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2 style="margin-top: 1.5rem;">Shared Reports (Visible to Nurse)</h2>
+<form method="post" action="{{ url_for('patient_upload_report') }}" enctype="multipart/form-data" style="max-width: 520px;">
+    {{ shared_upload_form.hidden_tag() }}
+    <div class="form-group">
+        <label for="{{ shared_upload_form.report_file.id }}">Upload Report (PDF/JPG/PNG)</label>
+        {{ shared_upload_form.report_file(id=shared_upload_form.report_file.id, accept=".pdf,.jpg,.jpeg,.png", required=True) }}
+    </div>
+    <button class="btn btn-inline" type="submit">Upload Shared Report</button>
+</form>
+
+<table style="margin-top: 1rem;">
+    <thead>
+        <tr>
+            <th>File</th>
+            <th>Uploaded At</th>
+            <th>Open</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for report in reports %}
+        <tr>
+            <td>{{ report.original_filename }}</td>
+            <td>{{ report.uploaded_at | ist_datetime }}</td>
+            <td><a href="{{ url_for('view_report', filename=report.saved_filename) }}" target="_blank">Open</a></td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="3">No shared reports yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

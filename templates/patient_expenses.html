@@ -1,0 +1,59 @@
+{% extends "patient_portal_base.html" %}
+{% block title %}Supply Ledger | Subject{% endblock %}
+
+{% block portal_content %}
+<h1>Supply Ledger</h1>
+<p>Add, edit, and delete your treatment cost entries.</p>
+
+<form method="post" action="{{ url_for('patient_expenses') }}">
+    {{ form.hidden_tag() }}
+    <div class="grid">
+        <div class="form-group">
+            <label for="category">Supply Type</label>
+            <input id="category" name="category" type="text" placeholder="Room cost / Medicine cost" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Note</label>
+            <input id="description" name="description" type="text" placeholder="Optional field note">
+        </div>
+        <div class="form-group">
+            <label for="amount">Amount (Rs.)</label>
+            <input id="amount" name="amount" type="number" min="0.01" step="0.01" required>
+        </div>
+    </div>
+    <button class="btn btn-inline" type="submit">Add Entry</button>
+</form>
+
+<h2 style="margin-top: 1.3rem;">Total Spend: Rs. {{ "%.2f"|format(total_expense) }}</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Supply Type</th>
+            <th>Note</th>
+            <th>Amount</th>
+            <th>Logged At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in expenses %}
+        <tr>
+            <td>{{ item.category }}</td>
+            <td>{{ item.description or "-" }}</td>
+            <td>Rs. {{ "%.2f"|format(item.amount) }}</td>
+            <td>{{ item.created_at | ist_datetime }}</td>
+            <td>
+                <a class="btn btn-inline btn-secondary" href="{{ url_for('patient_update_expense', expense_id=item.id) }}">Edit Entry</a>
+                <form method="post" action="{{ url_for('patient_delete_expense', expense_id=item.id) }}" style="margin-top: 0.35rem;">
+                    <button class="btn btn-danger btn-inline" type="submit">Delete Entry</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5">No ledger entries yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

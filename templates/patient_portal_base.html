@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    .portal-shell {
+        position: relative;
+    }
+
+    .portal-menu-wrap {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 20;
+    }
+
+    .portal-menu-btn {
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 10px;
+        width: 44px;
+        height: 44px;
+        font-size: 1.35rem;
+        cursor: pointer;
+        color: var(--primary);
+        box-shadow: 0 6px 14px rgba(15, 92, 138, 0.08);
+    }
+
+    .portal-menu {
+        margin-top: 0.5rem;
+        width: 230px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+        display: none;
+        overflow: hidden;
+    }
+
+    .portal-menu.open {
+        display: block;
+    }
+
+    .portal-menu a {
+        display: block;
+        padding: 0.75rem 0.9rem;
+        text-decoration: none;
+        color: var(--text);
+        border-bottom: 1px solid #eef2f7;
+        font-weight: 600;
+    }
+
+    .portal-menu a:last-child {
+        border-bottom: none;
+    }
+
+    .portal-menu a:hover {
+        background: #f4f9ff;
+        color: var(--primary);
+    }
+
+    .portal-card {
+        padding-top: 3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="portal-shell">
+    <div class="portal-menu-wrap">
+        <button id="portal-menu-btn" class="portal-menu-btn" type="button" aria-label="Menu">☰</button>
+        <nav id="portal-menu" class="portal-menu" aria-label="Subject Options">
+            <a href="{{ url_for('patient_treatment') }}">Current Care Log</a>
+            <a href="{{ url_for('patient_expenses') }}">Supply Ledger</a>
+            <a href="{{ url_for('patient_reports') }}">Report Vault</a>
+            <a href="{{ url_for('patient_xray') }}">X-Ray Scanner</a>
+        </nav>
+    </div>
+    <section class="card portal-card">
+        {% block portal_content %}{% endblock %}
+    </section>
+</section>
+<script>
+    (function () {
+        const btn = document.getElementById("portal-menu-btn");
+        const menu = document.getElementById("portal-menu");
+        if (!btn || !menu) {
+            return;
+        }
+        btn.addEventListener("click", function () {
+            menu.classList.toggle("open");
+        });
+        document.addEventListener("click", function (event) {
+            if (!menu.contains(event.target) && event.target !== btn) {
+                menu.classList.remove("open");
+            }
+        });
+    })();
+</script>
+{% endblock %}

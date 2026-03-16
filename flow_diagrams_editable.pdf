@@ -1,0 +1,116 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+3 0 obj
+<< /Length 1423 >>
+stream
+0 0 0 RG
+0 0 0 rg
+BT /F2 18 Tf 62 764 Td (Patient User Flow) Tj ET
+BT /F2 14 Tf 62 718 Td (Patient) Tj ET
+116.96 717.00 m 140.96 717.00 l S
+140.96 717.00 m 140.96 699.00 l S
+107.00 694.00 m 117.00 694.00 l S
+107.00 694.00 m 107.00 668.00 l S
+BT /F1 12 Tf 119.00 690.00 Td (Open App / Website) Tj ET
+107.00 668.00 m 117.00 668.00 l S
+107.00 668.00 m 107.00 642.00 l S
+BT /F1 12 Tf 119.00 664.00 Td (Login / Register) Tj ET
+107.00 642.00 m 117.00 642.00 l S
+107.00 642.00 m 107.00 616.00 l S
+BT /F1 12 Tf 119.00 638.00 Td (Search Doctor / Service) Tj ET
+107.00 616.00 m 117.00 616.00 l S
+107.00 616.00 m 107.00 590.00 l S
+BT /F1 12 Tf 119.00 612.00 Td (Select Appointment Slot) Tj ET
+107.00 590.00 m 117.00 590.00 l S
+107.00 590.00 m 107.00 564.00 l S
+BT /F1 12 Tf 119.00 586.00 Td (Enter Symptoms / Reason for Visit) Tj ET
+107.00 564.00 m 117.00 564.00 l S
+107.00 564.00 m 107.00 538.00 l S
+BT /F1 12 Tf 119.00 560.00 Td (Confirm Booking) Tj ET
+107.00 538.00 m 117.00 538.00 l S
+107.00 538.00 m 107.00 512.00 l S
+BT /F1 12 Tf 119.00 534.00 Td (Check In) Tj ET
+107.00 512.00 m 117.00 512.00 l S
+107.00 512.00 m 107.00 486.00 l S
+BT /F1 12 Tf 119.00 508.00 Td (Doctor Consultation) Tj ET
+107.00 486.00 m 117.00 486.00 l S
+107.00 486.00 m 107.00 460.00 l S
+BT /F1 12 Tf 119.00 482.00 Td (Receive Prescription / Treatment) Tj ET
+107.00 460.00 m 117.00 460.00 l S
+BT /F1 12 Tf 119.00 456.00 Td (View Records and Follow-Up) Tj ET
+endstream
+endobj
+4 0 obj
+<< /Type /Page /Parent 7 0 R /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 3 0 R >>
+endobj
+5 0 obj
+<< /Length 1392 >>
+stream
+0 0 0 RG
+0 0 0 rg
+BT /F2 18 Tf 62 764 Td (Nurse User Flow) Tj ET
+BT /F2 14 Tf 62 718 Td (Nurse) Tj ET
+102.40 717.00 m 126.40 717.00 l S
+126.40 717.00 m 126.40 699.00 l S
+107.00 694.00 m 117.00 694.00 l S
+107.00 694.00 m 107.00 668.00 l S
+BT /F1 12 Tf 119.00 690.00 Td (Login to System) Tj ET
+107.00 668.00 m 117.00 668.00 l S
+107.00 668.00 m 107.00 642.00 l S
+BT /F1 12 Tf 119.00 664.00 Td (View Assigned Patients) Tj ET
+107.00 642.00 m 117.00 642.00 l S
+107.00 642.00 m 107.00 616.00 l S
+BT /F1 12 Tf 119.00 638.00 Td (Check Patient Details) Tj ET
+107.00 616.00 m 117.00 616.00 l S
+107.00 616.00 m 107.00 590.00 l S
+BT /F1 12 Tf 119.00 612.00 Td (Record Vitals) Tj ET
+107.00 590.00 m 117.00 590.00 l S
+107.00 590.00 m 107.00 564.00 l S
+BT /F1 12 Tf 119.00 586.00 Td (Update Patient Status) Tj ET
+107.00 564.00 m 117.00 564.00 l S
+107.00 564.00 m 107.00 538.00 l S
+BT /F1 12 Tf 119.00 560.00 Td (Assist Doctor) Tj ET
+107.00 538.00 m 117.00 538.00 l S
+107.00 538.00 m 107.00 512.00 l S
+BT /F1 12 Tf 119.00 534.00 Td (Administer Medication / Care) Tj ET
+107.00 512.00 m 117.00 512.00 l S
+107.00 512.00 m 107.00 486.00 l S
+BT /F1 12 Tf 119.00 508.00 Td (Document Observations) Tj ET
+107.00 486.00 m 117.00 486.00 l S
+107.00 486.00 m 107.00 460.00 l S
+BT /F1 12 Tf 119.00 482.00 Td (Alert Doctor if Needed) Tj ET
+107.00 460.00 m 117.00 460.00 l S
+BT /F1 12 Tf 119.00 456.00 Td (Close Task) Tj ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 7 0 R /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 5 0 R >>
+endobj
+7 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 /MediaBox [0 0 595 842] >>
+endobj
+8 0 obj
+<< /Type /Catalog /Pages 7 0 R >>
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000015 00000 n 
+0000000085 00000 n 
+0000000160 00000 n 
+0000001634 00000 n 
+0000001746 00000 n 
+0000003189 00000 n 
+0000003301 00000 n 
+0000003388 00000 n 
+trailer
+<< /Size 9 /Root 8 0 R >>
+startxref
+3437
+%%EOF
