@@ -164,7 +164,7 @@ def send_password_reset_otp(phone_number: str, otp_code: str) -> bool:
     account_sid = (current_app.config.get("TWILIO_ACCOUNT_SID") or "").strip()
     auth_token = (current_app.config.get("TWILIO_AUTH_TOKEN") or "").strip()
     from_number = normalize_phone_number(current_app.config.get("SMS_FROM_NUMBER") or "")
-    to_number = normalize_phone_number(current_app.config.get("SMS_ALERT_TO_NUMBER") or "")
+    to_number = normalize_phone_number(phone_number)
 
     if not all([account_sid, auth_token, from_number, to_number]):
         current_app.logger.warning("OTP SMS not sent: Twilio configuration is incomplete.")
