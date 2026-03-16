@@ -160,21 +160,21 @@ def clear_reset_otp_session() -> None:
     session.pop("reset_otp_attempts", None)
 
 
-def send_password_reset_otp(phone_number: str, otp_code: str) -> bool:
+def send_sms_via_twilio(to_number: str, body: str) -> bool:
     account_sid = (current_app.config.get("TWILIO_ACCOUNT_SID") or "").strip()
     auth_token = (current_app.config.get("TWILIO_AUTH_TOKEN") or "").strip()
     from_number = normalize_phone_number(current_app.config.get("SMS_FROM_NUMBER") or "")
-    to_number = normalize_phone_number(current_app.config.get("SMS_ALERT_TO_NUMBER") or "")
+    to_number = normalize_phone_number(to_number)
 
     if not all([account_sid, auth_token, from_number, to_number]):
-        current_app.logger.warning("OTP SMS not sent: Twilio configuration is incomplete.")
+        current_app.logger.warning("SMS not sent: Twilio configuration is incomplete.")
         return False
 
     payload = urlencode(
         {
             "To": to_number,
             "From": from_number,
-            "Body": f"Your Hawkins Lab reset OTP is {otp_code}. It expires in 5 minutes.",
+            "Body": body,
         }
     ).encode("utf-8")
     auth_value = b64encode(f"{account_sid}:{auth_token}".encode("utf-8")).decode("ascii")
@@ -182,7 +182,11 @@ def send_password_reset_otp(phone_number: str, otp_code: str) -> bool:
     request_obj = Request(
         endpoint,
         data=payload,
-        headers={"Authorization": f"Basic {auth_value}"},
+        headers={
+            "Authorization": f"Basic {auth_value}",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+        },
         method="POST",
     )
 
@@ -190,7 +194,7 @@ def send_password_reset_otp(phone_number: str, otp_code: str) -> bool:
         with urlopen(request_obj, timeout=10) as response:
             if response.status in (200, 201):
                 return True
-            current_app.logger.warning("OTP SMS failed with status code %s.", response.status)
+            current_app.logger.warning("SMS failed with status code %s.", response.status)
             return False
     except HTTPError as exc:
         error_body = ""
@@ -199,75 +203,42 @@ def send_password_reset_otp(phone_number: str, otp_code: str) -> bool:
         except Exception:
             error_body = "<unable to read response body>"
         current_app.logger.warning(
-            "OTP SMS failed: status=%s reason=%s body=%s",
+            "SMS failed: status=%s reason=%s body=%s",
             exc.code,
             exc.reason,
             error_body,
         )
         return False
     except URLError as exc:
-        current_app.logger.warning("OTP SMS failed: %s", exc)
+        current_app.logger.warning("SMS failed: %s", exc)
         return False
+    except Exception as exc:
+        current_app.logger.warning("SMS failed unexpectedly: %s", exc)
+        return False
+
+
+def send_password_reset_otp(phone_number: str, otp_code: str) -> bool:
+    return send_sms_via_twilio(
+        phone_number,
+        f"Your Hawkins Lab reset OTP is {otp_code}. It expires in 5 minutes.",
+    )
 
 
 # Send nurse-created patient onboarding alert SMS via Twilio when configured.
 def send_registration_sms(patient_name: str, phone_number: str, room_number: str) -> None:
-    account_sid = (current_app.config.get("TWILIO_ACCOUNT_SID") or "").strip()
-    auth_token = (current_app.config.get("TWILIO_AUTH_TOKEN") or "").strip()
-    from_number = normalize_phone_number(current_app.config.get("SMS_FROM_NUMBER") or "")
-    to_number = normalize_phone_number(current_app.config.get("SMS_ALERT_TO_NUMBER") or "")
-
-    if not all([account_sid, auth_token, from_number, to_number]):
-        return
-
     ist_timestamp = datetime.now(IST_TIMEZONE).strftime("%Y-%m-%d %I:%M:%S %p IST")
-    auth_value = b64encode(f"{account_sid}:{auth_token}".encode("utf-8")).decode("ascii")
-    endpoint = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json"
-    payload = urlencode(
-        {
-            "To": to_number,
-            "From": from_number,
-            "Body": (
-                "New patient added by nurse.\n"
-                f"Patient Name: {patient_name}\n"
-                f"Phone: {phone_number}\n"
-                f"Room No: {room_number or 'N/A'}\n"
-                f"Timestamp: {ist_timestamp}"
-            ),
-        }
-    ).encode("utf-8")
-    request_obj = Request(
-        endpoint,
-        data=payload,
-        headers={"Authorization": f"Basic {auth_value}"},
-        method="POST",
+    sms_sent = send_sms_via_twilio(
+        phone_number,
+        (
+            "New patient added by nurse.\n"
+            f"Patient Name: {patient_name}\n"
+            f"Phone: {phone_number}\n"
+            f"Room No: {room_number or 'N/A'}\n"
+            f"Timestamp: {ist_timestamp}"
+        ),
     )
-
-    try:
-        with urlopen(request_obj, timeout=10) as response:
-            if response.status not in (200, 201):
-                current_app.logger.warning(
-                    "SMS notification failed with status code %s for %s.",
-                    response.status,
-                    to_number,
-                )
-    except HTTPError as exc:
-        error_body = ""
-        try:
-            error_body = exc.read().decode("utf-8", errors="replace")
-        except Exception:
-            error_body = "<unable to read response body>"
-        current_app.logger.warning(
-            "SMS notification failed for %s: status=%s reason=%s body=%s",
-            to_number,
-            exc.code,
-            exc.reason,
-            error_body,
-        )
-    except URLError as exc:
-        current_app.logger.warning("SMS notification failed for %s: %s", to_number, exc)
-    except Exception as exc:
-        current_app.logger.warning("SMS notification failed for %s: %s", to_number, exc)
+    if not sms_sent:
+        current_app.logger.warning("SMS notification failed for %s.", phone_number)
 
 
 # Append only new nurse-entered text with IST timestamp metadata.
