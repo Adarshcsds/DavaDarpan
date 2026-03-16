@@ -4,7 +4,8 @@ from datetime import datetime, timedelta, timezone
 from flask import Flask
 from dotenv import load_dotenv
 
-load_dotenv()
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 from .config import Config
 from .models import (
@@ -23,7 +24,7 @@ IST_TIMEZONE = timezone(timedelta(hours=5, minutes=30))
 
 
 def create_app(config_class=Config):
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    base_dir = BASE_DIR
     app = Flask(
         __name__,
         instance_relative_config=True,
