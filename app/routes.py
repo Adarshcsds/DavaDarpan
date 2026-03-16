@@ -164,7 +164,7 @@ def send_password_reset_otp(phone_number: str, otp_code: str) -> bool:
     account_sid = (current_app.config.get("TWILIO_ACCOUNT_SID") or "").strip()
     auth_token = (current_app.config.get("TWILIO_AUTH_TOKEN") or "").strip()
     from_number = normalize_phone_number(current_app.config.get("SMS_FROM_NUMBER") or "")
-    to_number = normalize_phone_number(phone_number)
+    to_number = normalize_phone_number(current_app.config.get("SMS_ALERT_TO_NUMBER") or "")
 
     if not all([account_sid, auth_token, from_number, to_number]):
         current_app.logger.warning("OTP SMS not sent: Twilio configuration is incomplete.")
@@ -429,8 +429,7 @@ def register_routes(app) -> None:
 
             otp_code = generate_otp_code()
             sms_sent = send_password_reset_otp(phone_number, otp_code)
-            is_debug_mode = bool(current_app.debug or current_app.config.get("TESTING"))
-            if not sms_sent and not is_debug_mode:
+            if not sms_sent:
                 flash("Unable to send OTP right now. Please try again shortly.", "error")
                 return render_template(
                     "patient_reset_password.html",
@@ -448,17 +447,7 @@ def register_routes(app) -> None:
             )
             session["reset_otp_attempts"] = 0
             otp_verify_form.phone_number.data = phone_number
-            if sms_sent:
-                flash("OTP sent successfully. It is valid for 5 minutes.", "success")
-            else:
-                current_app.logger.warning(
-                    "Twilio SMS failed in debug mode. Using local OTP fallback for %s.",
-                    phone_number,
-                )
-                flash(
-                    f"Debug OTP (SMS failed): {otp_code}. It is valid for 5 minutes.",
-                    "success",
-                )
+            flash("OTP sent successfully. It is valid for 5 minutes.", "success")
             return render_template(
                 "patient_reset_password.html",
                 otp_request_form=otp_request_form,
