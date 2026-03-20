@@ -880,36 +880,42 @@ def register_routes(app) -> None:
         form = NurseAddPatientForm()
         if form.validate_on_submit():
             phone_number = form.phone_number.data.strip()
+            patient_name = form.patient_name.data.strip()
+            room_number = form.room_number.data.strip()
             existing_user = PatientLogin.query.filter(
                 PatientLogin.phone_number == phone_number
             ).first()
-            if existing_user:
-                flash("Contact number already exists.", "error")
-                return render_template("nurse_add_patient.html", form=form)
+            if existing_user is not None:
+                patient = existing_user
+                patient.patient_name = patient_name
+                patient.room_number = room_number
+                patient.hospital_code = session["hospital_code"]
+                patient.is_discharged = False
+                patient.discharged_at = None
+                get_or_create_care_record(patient.id)
+            else:
+                phone_digits = "".join(ch for ch in phone_number if ch.isdigit())
+                username_base = f"pt{phone_digits[-10:]}" if phone_digits else f"pt{secrets.randbelow(10**10):010d}"
+                username = username_base
+                suffix = 1
+                while PatientLogin.query.filter_by(username=username).first() is not None:
+                    username = f"{username_base}{suffix}"
+                    suffix += 1
 
-            phone_digits = "".join(ch for ch in phone_number if ch.isdigit())
-            username_base = f"pt{phone_digits[-10:]}" if phone_digits else f"pt{secrets.randbelow(10**10):010d}"
-            username = username_base
-            suffix = 1
-            while PatientLogin.query.filter_by(username=username).first() is not None:
-                username = f"{username_base}{suffix}"
-                suffix += 1
+                patient = PatientLogin(
+                    patient_name=patient_name,
+                    phone_number=phone_number,
+                    username=username,
+                    room_number=room_number,
+                    hospital_code=session["hospital_code"],
+                    is_discharged=False,
+                    discharged_at=None,
+                )
+                patient.set_password(secrets.token_urlsafe(24))
+                db.session.add(patient)
+                db.session.flush()
+                get_or_create_care_record(patient.id)
 
-            patient = PatientLogin(
-                patient_name=form.patient_name.data.strip(),
-                phone_number=phone_number,
-                username=username,
-                room_number=form.room_number.data.strip(),
-                hospital_code=session["hospital_code"],
-                is_discharged=False,
-                discharged_at=None,
-            )
-            patient.set_password(secrets.token_urlsafe(24))
-            db.session.add(patient)
-            db.session.flush()
-
-            record = PatientCareRecord(patient_id=patient.id)
-            db.session.add(record)
             db.session.commit()
             send_registration_sms(
                 patient.patient_name,

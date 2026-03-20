@@ -4,7 +4,7 @@
 {% block content %}
 <section class="card" style="max-width: 620px; margin: 0 auto;">
     <h1>Add New Subject</h1>
-    <p>Staff can create a subject file with patient name, contact number, and room number. Patient is linked to your logged-in hospital code.</p>
+    <p>Staff can create a subject file with patient name, contact number, and room number. Existing app users with the same contact number can also be linked to your logged-in hospital code.</p>
 
     <form method="post" action="{{ url_for('nurse_add_patient') }}">
         {{ form.hidden_tag() }}
