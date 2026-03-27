@@ -53,7 +53,8 @@ body::before {
     background: linear-gradient(160deg, rgba(16, 8, 8, 0.75), rgba(10, 6, 6, 0.8));
 }
 
-.auth-page .card {
+.auth-page .auth-shell,
+.auth-page .gateway-card {
     position: relative;
     z-index: 1;
     border-radius: 12px;
@@ -61,6 +62,11 @@ body::before {
     background: var(--st-card);
     color: var(--st-text);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+.auth-page .auth-shell {
+    background: linear-gradient(160deg, rgba(16, 8, 8, 0.46), rgba(10, 6, 6, 0.3));
+    backdrop-filter: blur(14px);
 }
 
 h1,
@@ -144,7 +150,8 @@ a:hover {
 .auth-page .topbar,
 .auth-page main.container,
 .auth-page .container,
-.auth-page .card,
+.auth-page .auth-shell,
+.auth-page .gateway-card,
 .auth-page .alerts {
     position: relative;
     z-index: 2;
