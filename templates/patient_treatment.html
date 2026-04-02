@@ -1,20 +1,53 @@
 {% extends "patient_portal_base.html" %}
 {% block title %}Current Care Log | Subject{% endblock %}
+{% block extra_head %}
+{{ super() }}
+<style>
+    .portal-menu-wrap {
+        position: static;
+        margin-bottom: 0.35rem;
+    }
+
+    .portal-card {
+        padding-top: 0.5rem;
+    }
+
+    .hospital-code-input {
+        text-align: left;
+        direction: ltr;
+        unicode-bidi: plaintext;
+    }
+</style>
+{% endblock %}
 
 {% block portal_content %}
 <h1>Current Care Log</h1>
 <p>View staff-updated medications, injections, and prescriptions.</p>
 
-{% if care_record is none %}
-<p>Enter your hospital code to register this admission before continuing.</p>
+<p>
+    {% if is_verified %}
+    Hospital code verified. Current care details are shown below.
+    {% else %}
+    Enter the hospital code already assigned by the nurse to view your current care.
+    {% endif %}
+</p>
 <form method="post" action="{{ url_for('patient_treatment') }}" style="max-width: 420px;">
     {{ code_form.hidden_tag() }}
     <div class="form-group">
-        <label for="hospital_code">Hospital Code</label>
-        <input id="hospital_code" name="hospital_code" type="text" placeholder="Enter hospital code" required>
+        {{ code_form.hospital_code.label(for=code_form.hospital_code.id) }}
+        {{ code_form.hospital_code(
+            id=code_form.hospital_code.id,
+            class_="hospital-code-input",
+            placeholder="Enter hospital code",
+            autocomplete="off",
+            required=True
+        ) }}
     </div>
-    <button class="btn btn-inline" type="submit">Register Code</button>
+    {{ code_form.submit(class_="btn btn-inline") }}
 </form>
+
+{% if care_record is none %}
+<p>No current care will be shown until the correct hospital code is entered.</p>
 {% else %}
 <p><strong>Hospital Code:</strong> {{ patient.hospital_code }}</p>
 

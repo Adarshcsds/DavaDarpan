@@ -3,7 +3,6 @@
 {% block body_class %}auth-page{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/auth_slider.css') }}">
 <style>
     .portal-shell {
         position: relative;
@@ -73,7 +72,7 @@
 
     .portal-card {
         padding-top: 4rem;
-        background: rgba(10, 12, 16, 0.24) !important;
+        background: var(--card) !important;
     }
 
     .portal-kicker {
@@ -191,12 +190,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="auth-slider" aria-hidden="true">
-    <div class="auth-slide slide-red"></div>
-    <div class="auth-slide slide-blue"></div>
-    <div class="auth-slide slide-green"></div>
-    <div class="auth-slide slide-gold"></div>
-</div>
 <section class="portal-shell">
     <div class="portal-menu-wrap">
         <button id="portal-menu-btn" class="portal-menu-btn" type="button" aria-label="Menu">☰</button>

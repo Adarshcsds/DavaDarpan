@@ -541,12 +541,15 @@ def register_routes(app) -> None:
 
         if otp_request_form.send_otp.data and otp_request_form.validate_on_submit():
             phone_number = otp_request_form.phone_number.data.strip()
-            existing_user = PatientLogin.query.filter(
-                (PatientLogin.phone_number == phone_number)
-                | (PatientLogin.username == otp_request_form.username.data.strip())
+            requested_username = otp_request_form.username.data.strip()
+            existing_phone_user = PatientLogin.query.filter_by(phone_number=phone_number).first()
+            existing_username_user = PatientLogin.query.filter_by(
+                username=requested_username
             ).first()
-            if existing_user:
-                flash("Username or contact number already exists.", "error")
+            if existing_username_user and (
+                existing_phone_user is None or existing_username_user.id != existing_phone_user.id
+            ):
+                flash("Username already exists. Choose a different username.", "error")
                 return render_template(
                     "patient_register.html",
                     otp_request_form=otp_request_form,
@@ -571,7 +574,7 @@ def register_routes(app) -> None:
 
             session["registration_patient_name"] = otp_request_form.patient_name.data.strip()
             session["registration_phone_number"] = phone_number
-            session["registration_username"] = otp_request_form.username.data.strip()
+            session["registration_username"] = requested_username
             session["registration_password_hash"] = generate_password_hash(
                 otp_request_form.password.data
             )
@@ -655,13 +658,13 @@ def register_routes(app) -> None:
                     otp_step_active=True,
                 )
 
-            existing_user = PatientLogin.query.filter(
-                (PatientLogin.phone_number == phone_number)
-                | (PatientLogin.username == username)
-            ).first()
-            if existing_user:
+            existing_phone_user = PatientLogin.query.filter_by(phone_number=phone_number).first()
+            existing_username_user = PatientLogin.query.filter_by(username=username).first()
+            if existing_username_user and (
+                existing_phone_user is None or existing_username_user.id != existing_phone_user.id
+            ):
                 clear_registration_otp_session()
-                flash("Username or contact number already exists.", "error")
+                flash("Username already exists. Choose a different username.", "error")
                 return render_template(
                     "patient_register.html",
                     otp_request_form=otp_request_form,
@@ -669,18 +672,25 @@ def register_routes(app) -> None:
                     otp_step_active=False,
                 )
 
-            patient = PatientLogin(
-                patient_name=patient_name,
-                phone_number=phone_number,
-                username=username,
-                password_hash=password_hash,
-            )
-            db.session.add(patient)
-            db.session.flush()
-            db.session.add(PatientCareRecord(patient_id=patient.id))
+            if existing_phone_user:
+                patient = existing_phone_user
+                patient.patient_name = patient_name
+                patient.username = username
+                patient.password_hash = password_hash
+                get_or_create_care_record(patient.id)
+            else:
+                patient = PatientLogin(
+                    patient_name=patient_name,
+                    phone_number=phone_number,
+                    username=username,
+                    password_hash=password_hash,
+                )
+                db.session.add(patient)
+                db.session.flush()
+                db.session.add(PatientCareRecord(patient_id=patient.id))
             db.session.commit()
             clear_registration_otp_session()
-            flash("Case file created. Please sign in.", "success")
+            flash("Case file ready. Please sign in.", "success")
             return redirect(url_for("patient_login"))
 
         if request.method == "POST":
@@ -881,40 +891,33 @@ def register_routes(app) -> None:
         shared_upload_form = PatientReportUploadForm(prefix="shared")
         personal_upload_form = PatientReportUploadForm(prefix="personal")
         last_updated_by_nurse = None
+        if code_form.validate_on_submit():
+            entered_code = code_form.hospital_code.data.strip()
+            existing_code = (patient.hospital_code or "").strip()
+            if not existing_code or entered_code != existing_code:
+                session["care_code_verified"] = False
+                flash("No current treatment at this hospital code.", "error")
+                return render_template(
+                    "patient_treatment.html",
+                    patient=patient,
+                    care_record=None,
+                    code_form=code_form,
+                    shared_upload_form=shared_upload_form,
+                    personal_upload_form=personal_upload_form,
+                    reports=[],
+                    personal_documents=[],
+                    last_updated_by_nurse=last_updated_by_nurse,
+                    is_verified=False,
+                )
+            flash("Hospital code verified.", "success")
+            session["care_code_verified"] = True
+            return redirect(url_for("patient_treatment"))
+
         is_verified = (
             session.get("care_code_verified") is True
             and session.get("patient_id") == patient.id
         )
-
         if not is_verified:
-            if code_form.validate_on_submit():
-                entered_code = code_form.hospital_code.data.strip()
-                existing_code = (patient.hospital_code or "").strip()
-                if existing_code and entered_code != existing_code:
-                    flash("Invalid hospital code for this account.", "error")
-                    return render_template(
-                        "patient_treatment.html",
-                        patient=patient,
-                        care_record=None,
-                        code_form=code_form,
-                        shared_upload_form=shared_upload_form,
-                        personal_upload_form=personal_upload_form,
-                        reports=[],
-                        personal_documents=[],
-                        last_updated_by_nurse=last_updated_by_nurse,
-                    )
-                if not existing_code:
-                    patient.hospital_code = entered_code
-                    db.session.commit()
-                    flash(
-                        "Hospital code registered. You can now continue treatment tracking.",
-                        "success",
-                    )
-                else:
-                    flash("Hospital code verified.", "success")
-                session["care_code_verified"] = True
-                return redirect(url_for("patient_treatment"))
-
             return render_template(
                 "patient_treatment.html",
                 patient=patient,
@@ -925,6 +928,7 @@ def register_routes(app) -> None:
                 reports=[],
                 personal_documents=[],
                 last_updated_by_nurse=last_updated_by_nurse,
+                is_verified=False,
             )
 
         care_record = get_or_create_care_record(patient.id)
@@ -942,6 +946,7 @@ def register_routes(app) -> None:
             reports=patient.reports,
             personal_documents=patient.personal_documents,
             last_updated_by_nurse=last_updated_by_nurse,
+            is_verified=True,
         )
 
     # Expense route for adding and listing patient expense entries.

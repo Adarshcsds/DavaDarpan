@@ -7,12 +7,12 @@
     <style>
         :root {
             --bg: #f4f7fb;
-            --card: #ffffff;
+            --card: rgba(10, 12, 16, 0.28);
             --primary: #0f5c8a;
             --primary-hover: #0a466a;
-            --text: #1f2937;
-            --muted: #6b7280;
-            --border: #d1d5db;
+            --text: #f6f1f1;
+            --muted: rgba(255, 255, 255, 0.82);
+            --border: rgba(255, 255, 255, 0.18);
             --danger: #b91c1c;
         }
 
@@ -56,7 +56,9 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 1.5rem;
-            box-shadow: 0 8px 24px rgba(15, 92, 138, 0.08);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(22px) saturate(140%);
+            -webkit-backdrop-filter: blur(22px) saturate(140%);
         }
 
         h1, h2 {
@@ -85,27 +87,33 @@
             margin-bottom: 0.4rem;
         }
 
-        input {
+        input,
+        textarea,
+        select {
             width: 100%;
             padding: 0.7rem 0.75rem;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.88);
             border: 1px solid var(--border);
             border-radius: 8px;
             font-size: 0.95rem;
+            caret-color: #ffffff;
         }
 
         textarea {
-            width: 100%;
             min-height: 90px;
-            padding: 0.7rem 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.95rem;
             resize: vertical;
         }
 
-        input:focus, textarea:focus {
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        input:focus, textarea:focus, select:focus {
             outline: 2px solid rgba(15, 92, 138, 0.2);
             border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.94);
         }
 
         .btn {
@@ -239,9 +247,16 @@
             color: var(--muted);
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth_slider.css') }}">
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
+    <div class="auth-slider" aria-hidden="true">
+        <div class="auth-slide slide-red"></div>
+        <div class="auth-slide slide-blue"></div>
+        <div class="auth-slide slide-green"></div>
+        <div class="auth-slide slide-gold"></div>
+    </div>
     <audio id="bg-audio" loop preload="auto" hidden>
         <source src="{{ url_for('static', filename='audio/WhatsApp Audio 2026-03-03 at 11.44.46 AM.mpeg') }}" type="audio/mpeg">
     </audio>

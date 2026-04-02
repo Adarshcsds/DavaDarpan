@@ -60,10 +60,10 @@ body::before {
     position: relative;
     z-index: 3;
     border-radius: 16px;
-    background: rgba(10, 12, 16, 0.24);
+    background: var(--card);
     backdrop-filter: blur(22px) saturate(140%);
     -webkit-backdrop-filter: blur(22px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid var(--border);
     color: var(--st-text);
     box-shadow:
         0 10px 40px rgba(0, 0, 0, 0.5),
@@ -171,7 +171,7 @@ a:hover {
 .auth-page .card.card-transparent,
 .auth-page section.card,
 .auth-page .gateway-card {
-    background: rgba(10, 12, 16, 0.24);
+    background: var(--card);
 }
 
 .auth-slider {

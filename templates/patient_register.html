@@ -1,20 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Create Subject File | Hawkins Lab{% endblock %}
 {% block body_class %}auth-page{% endblock %}
-{% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/auth_slider.css') }}">
-{% endblock %}
 
 {% block content %}
-<div class="auth-slider" aria-hidden="true">
-    <div class="auth-slide slide-red"></div>
-    <div class="auth-slide slide-blue"></div>
-    <div class="auth-slide slide-green"></div>
-    <div class="auth-slide slide-gold"></div>
-</div>
 <section class="card" style="max-width: 520px; margin: 0 auto;">
     <h1>New Subject Registration</h1>
-    <p>Enter your details, request OTP, then verify it to open a new case file.</p>
+    <p>Enter your details, request OTP, then verify it to open or claim your case file. If the nurse already created your treatment file, register with the same phone number to continue with that file.</p>
 
     <form method="post" action="{{ url_for('patient_register') }}" style="margin-bottom: 1.5rem;">
         {{ otp_request_form.hidden_tag() }}
