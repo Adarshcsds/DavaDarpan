@@ -1,83 +1,76 @@
-{% extends "base.html" %}
+{% extends "patient_portal_base.html" %}
 {% block title %}Subject Dashboard | Hawkins Lab{% endblock %}
 
-{% block content %}
-<section class="card">
-    <h1>Subject Dashboard</h1>
-    <p>Family or subject can view staff-updated care details and uploaded reports.</p>
+{% block portal_content %}
+<span class="portal-kicker">Subject Portal</span>
+<h1>Subject Dashboard</h1>
+<p>Track your care log, reports, expenses, and tools from one cleaner control screen.</p>
 
-    <table>
-        <tbody>
-            <tr>
-                <th>Subject Name</th>
-                <td>{{ patient.patient_name }}</td>
-            </tr>
-            <tr>
-                <th>Room</th>
-                <td>{{ patient.room_number or "Unassigned" }}</td>
-            </tr>
-            <tr>
-                <th>Medication Log</th>
-                <td>{{ care_record.medications or "No updates yet" }}</td>
-            </tr>
-            <tr>
-                <th>Injection Log</th>
-                <td>{{ care_record.injections or "No updates yet" }}</td>
-            </tr>
-            <tr>
-                <th>Prescription Log</th>
-                <td>{{ care_record.prescriptions or "No updates yet" }}</td>
-            </tr>
-            <tr>
-                <th>Notes</th>
-                <td>{{ care_record.notes or "No updates yet" }}</td>
-            </tr>
-            <tr>
-                <th>Last Updated</th>
-                <td>
-                    {% if care_record.updated_at %}
-                        {{ care_record.updated_at | ist_datetime }}
-                    {% else %}
-                        No updates yet
-                    {% endif %}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h2 style="margin-top: 1.5rem;">Upload Report (Subject Only)</h2>
-    <p>Upload PDF directly or camera image (JPG/PNG), which is stored as PDF.</p>
-    <form method="post" action="{{ url_for('patient_upload_report') }}" enctype="multipart/form-data">
-        {{ upload_form.hidden_tag() }}
-        <div class="form-group">
-            <label for="report_file">Report File</label>
-            <input id="report_file" name="report_file" type="file" accept=".pdf,.jpg,.jpeg,.png" required>
-        </div>
-        <button class="btn btn-inline" type="submit">Upload to Vault</button>
-    </form>
-
-    <h2 style="margin-top: 1.5rem;">Report Vault</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Original File</th>
-                <th>Uploaded At</th>
-                <th>Open</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for report in reports %}
-            <tr>
-                <td>{{ report.original_filename }}</td>
-                <td>{{ report.uploaded_at | ist_datetime }}</td>
-                <td><a href="{{ url_for('view_report', filename=report.saved_filename) }}" target="_blank">Open</a></td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="3">No reports in the vault yet.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<section class="grid" style="margin-top: 1.25rem;">
+    <article class="card" style="padding: 1.1rem;">
+        <p style="margin-bottom: 0.35rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em;">Subject Name</p>
+        <h2 style="margin-bottom: 0;">{{ patient.patient_name }}</h2>
+    </article>
+    <article class="card" style="padding: 1.1rem;">
+        <p style="margin-bottom: 0.35rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em;">Room Assignment</p>
+        <h2 style="margin-bottom: 0;">{{ patient.room_number or "Unassigned" }}</h2>
+    </article>
+    <article class="card" style="padding: 1.1rem;">
+        <p style="margin-bottom: 0.35rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em;">Total Supplies</p>
+        <h2 style="margin-bottom: 0;">Rs. {{ '%.2f'|format(patient.expenses|sum(attribute='amount')) }}</h2>
+    </article>
+    <article class="card" style="padding: 1.1rem;">
+        <p style="margin-bottom: 0.35rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em;">Last Care Update</p>
+        <h2 style="margin-bottom: 0; font-size: 1rem;">{{ care_record.updated_at | ist_datetime if care_record and care_record.updated_at else "No updates yet" }}</h2>
+    </article>
 </section>
+
+<section class="portal-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
+    <a class="portal-option" href="{{ url_for('patient_treatment') }}">
+        <span class="portal-option-mark" style="padding: 0; overflow: hidden; background: #fff;">
+            <img src="{{ url_for('static', filename='images/download.png') }}" alt="Current Care Log" style="width: 100%; height: 100%; object-fit: cover;">
+        </span>
+        <strong>Current Care Log</strong>
+        <span>View medications, injections, prescriptions, and the latest staff notes.</span>
+    </a>
+    <a class="portal-option" href="{{ url_for('patient_expenses') }}">
+        <span class="portal-option-mark" style="padding: 0; overflow: hidden; background: #fff;">
+            <img src="{{ url_for('static', filename='images/supplyledger.png') }}" alt="Supply Ledger" style="width: 100%; height: 100%; object-fit: cover;">
+        </span>
+        <strong>Supply Ledger</strong>
+        <span>Track treatment costs, add entries, and keep an eye on your running total.</span>
+    </a>
+    <a class="portal-option" href="{{ url_for('patient_reports') }}">
+        <span class="portal-option-mark" style="padding: 0; overflow: hidden; background: #fff;">
+            <img src="{{ url_for('static', filename='images/report.png') }}" alt="Report Vault" style="width: 100%; height: 100%; object-fit: cover;">
+        </span>
+        <strong>Report Vault</strong>
+        <span>Store personal documents and review uploaded medical reports in one place.</span>
+    </a>
+    <a class="portal-option" href="{{ url_for('patient_xray') }}">
+        <span class="portal-option-mark" style="padding: 0; overflow: hidden; background: #fff;">
+            <img src="{{ url_for('static', filename='images/xray.png') }}" alt="X-Ray Scanner" style="width: 100%; height: 100%; object-fit: cover;">
+        </span>
+        <strong>X-Ray Scanner</strong>
+        <span>Jump into the scanner area as soon as that module is needed.</span>
+    </a>
+    <a class="portal-option" href="{{ url_for('patient_chatbot') }}">
+        <span class="portal-option-mark" style="padding: 0; overflow: hidden; background: #fff;">
+            <img src="{{ url_for('static', filename='images/download.jpg') }}" alt="Virtual Nurse" style="width: 100%; height: 100%; object-fit: cover;">
+        </span>
+        <strong>Virtual Nurse</strong>
+        <span>Ask broad questions about your room, care log, reports, portal steps, and get report-analysis help.</span>
+    </a>
+</section>
+
+<a
+    href="{{ url_for('patient_chatbot') }}"
+    style="position: fixed; right: 20px; bottom: 20px; z-index: 999; display: flex; align-items: center; gap: 0.85rem; padding: 0.8rem 1rem 0.8rem 0.8rem; border-radius: 999px; text-decoration: none; background: linear-gradient(135deg, #ffffff, #eef7ff); box-shadow: 0 18px 36px rgba(15, 92, 138, 0.22); border: 1px solid rgba(15, 92, 138, 0.22);"
+>
+    <img src="{{ url_for('static', filename='images/download.jpg') }}" alt="Virtual Nurse" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(15, 92, 138, 0.16);">
+    <span style="display: block;">
+        <strong style="display: block; color: var(--text); font-size: 0.98rem;">Virtual Nurse</strong>
+        <span style="display: block; color: var(--muted); font-size: 0.84rem;">Chat or analyze reports</span>
+    </span>
+</a>
 {% endblock %}

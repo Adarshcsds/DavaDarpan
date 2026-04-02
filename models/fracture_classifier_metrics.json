@@ -1,0 +1,39 @@
+{
+  "image_size": [
+    96,
+    96
+  ],
+  "feature_count": 1168,
+  "train_samples": 10063,
+  "validation_samples": 823,
+  "test_samples": 500,
+  "validation_accuracy": 1.0,
+  "test_accuracy": 0.992,
+  "classification_report": {
+    "not_fractured": {
+      "precision": 0.9849624060150376,
+      "recall": 1.0,
+      "f1-score": 0.9924242424242424,
+      "support": 262.0
+    },
+    "fractured": {
+      "precision": 1.0,
+      "recall": 0.9831932773109243,
+      "f1-score": 0.9915254237288136,
+      "support": 238.0
+    },
+    "accuracy": 0.992,
+    "macro avg": {
+      "precision": 0.9924812030075187,
+      "recall": 0.9915966386554622,
+      "f1-score": 0.991974833076528,
+      "support": 500.0
+    },
+    "weighted avg": {
+      "precision": 0.9921203007518796,
+      "recall": 0.992,
+      "f1-score": 0.9919964047252183,
+      "support": 500.0
+    }
+  }
+}

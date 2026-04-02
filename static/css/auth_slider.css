@@ -97,6 +97,12 @@ small {
     color: var(--st-text);
 }
 
+.auth-page .alert,
+.auth-page .alert-success,
+.auth-page .alert-error {
+    color: #000000;
+}
+
 .auth-page input,
 .auth-page textarea,
 .auth-page select {

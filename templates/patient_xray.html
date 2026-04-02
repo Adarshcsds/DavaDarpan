@@ -1,7 +1,254 @@
 {% extends "patient_portal_base.html" %}
-{% block title %}X-Ray Scanner | Subject{% endblock %}
+{% block title %}X-Ray Analyzer | Subject{% endblock %}
 
 {% block portal_content %}
-<h1>X-Ray Scanner</h1>
-<p>Scanner module will be connected soon.</p>
+<style>
+    .xray-shell {
+        display: grid;
+        gap: 1.4rem;
+    }
+
+    .xray-hero {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: 1.15fr 0.85fr;
+        align-items: start;
+    }
+
+    .xray-panel,
+    .xray-card,
+    .xray-preview {
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background:
+            radial-gradient(circle at top right, rgba(255, 97, 97, 0.18), transparent 34%),
+            linear-gradient(180deg, rgba(10, 12, 16, 0.46), rgba(10, 12, 16, 0.3));
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
+        backdrop-filter: blur(16px);
+    }
+
+    .xray-panel {
+        padding: 1.4rem;
+    }
+
+    .xray-kicker {
+        display: inline-flex;
+        padding: 0.35rem 0.72rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .xray-title {
+        margin: 0.85rem 0 0.5rem;
+        color: #fff;
+        font-size: 2rem;
+        line-height: 1.15;
+    }
+
+    .xray-copy,
+    .xray-note,
+    .xray-meta,
+    .xray-score-copy {
+        color: rgba(255, 255, 255, 0.82);
+        line-height: 1.6;
+    }
+
+    .xray-note {
+        margin-top: 0.8rem;
+        font-size: 0.94rem;
+    }
+
+    .xray-form {
+        display: grid;
+        gap: 0.9rem;
+    }
+
+    .xray-form label {
+        display: block;
+        color: #fff;
+        font-weight: 700;
+        margin-bottom: 0.45rem;
+    }
+
+    .xray-form input[type="file"] {
+        width: 100%;
+        padding: 0.85rem;
+        color: #fff;
+        border-radius: 14px;
+        border: 1px dashed rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .xray-btn {
+        width: 100%;
+        padding: 0.95rem 1rem;
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #ff5544, #ff8a5b);
+        color: #fff;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 14px 30px rgba(255, 85, 68, 0.28);
+    }
+
+    .xray-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .xray-card {
+        padding: 1.1rem;
+    }
+
+    .xray-card strong,
+    .xray-preview h3,
+    .xray-panel h3 {
+        color: #fff;
+    }
+
+    .xray-metric {
+        margin-top: 0.55rem;
+        color: #fff;
+        font-size: 1.7rem;
+        font-weight: 800;
+    }
+
+    .xray-preview {
+        padding: 1.2rem;
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+    }
+
+    .xray-preview img {
+        width: 100%;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .xray-score-chip {
+        display: inline-flex;
+        padding: 0.4rem 0.8rem;
+        border-radius: 999px;
+        color: #fff;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+    }
+
+    .xray-score-chip.low {
+        background: linear-gradient(135deg, #149954, #25c26e);
+    }
+
+    .xray-score-chip.medium {
+        background: linear-gradient(135deg, #c98b10, #f0bb3c);
+    }
+
+    .xray-score-chip.high {
+        background: linear-gradient(135deg, #d64545, #ff7b6a);
+    }
+
+    .xray-score-number {
+        color: #fff;
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        margin: 0.2rem 0 0.7rem;
+    }
+
+    .xray-list {
+        margin: 0.9rem 0 0;
+        padding-left: 1.1rem;
+        color: rgba(255, 255, 255, 0.82);
+        line-height: 1.7;
+    }
+
+    @media (max-width: 980px) {
+        .xray-hero,
+        .xray-preview,
+        .xray-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="xray-shell">
+    <div class="xray-hero">
+        <div class="xray-panel">
+            <span class="xray-kicker">ML Classifier</span>
+            <h1 class="xray-title">Fracture X-Ray Analyzer</h1>
+            <p class="xray-copy">
+                Upload a bone X-ray image to run the trained fracture classifier and view the predicted
+                class probabilities from the saved model.
+            </p>
+            <p class="xray-note">
+                This tool is for screening support only. It does not replace a radiologist or orthopedic review.
+            </p>
+        </div>
+
+        <div class="xray-panel">
+            <h3>Upload Image</h3>
+            <form class="xray-form" method="post" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <div>
+                    {{ form.xray_file.label }}
+                    {{ form.xray_file() }}
+                </div>
+                {{ form.submit(class_="xray-btn") }}
+            </form>
+        </div>
+    </div>
+
+    <div class="xray-grid">
+        <div class="xray-card">
+            <strong>What it checks</strong>
+            <div class="xray-meta">A trained classifier built from extracted grayscale, edge, and asymmetry features.</div>
+        </div>
+        <div class="xray-card">
+            <strong>Prediction output</strong>
+            <div class="xray-meta">Returns the predicted class plus fracture and non-fracture probabilities.</div>
+        </div>
+        <div class="xray-card">
+            <strong>Accepted files</strong>
+            <div class="xray-meta">JPG, JPEG, and PNG X-ray images under 10 MB.</div>
+        </div>
+        <div class="xray-card">
+            <strong>Model source</strong>
+            <div class="xray-meta">Uses the locally trained classifier saved by `train_xray_model.py`.</div>
+        </div>
+    </div>
+
+    {% if analysis_result %}
+    <div class="xray-preview">
+        <div>
+            <h3>Uploaded X-Ray</h3>
+            <img src="{{ preview_url }}" alt="Uploaded X-ray preview">
+            <p class="xray-note">
+                File: {{ analysis_result.filename }} | Size: {{ analysis_result.width }} x {{ analysis_result.height }}
+            </p>
+        </div>
+        <div>
+            <span class="xray-score-chip {{ analysis_result.tone }}">{{ analysis_result.label }}</span>
+            <div class="xray-score-number">{{ analysis_result.confidence }}%</div>
+            <p class="xray-score-copy">{{ analysis_result.summary }}</p>
+            <ul class="xray-list">
+                <li>Predicted class: {{ analysis_result.predicted_class }}</li>
+                <li>Fracture probability: {{ analysis_result.fracture_probability }}%</li>
+                <li>Normal probability: {{ analysis_result.normal_probability }}%</li>
+                <li>Brightness: {{ analysis_result.brightness }}</li>
+                <li>Contrast: {{ analysis_result.contrast }}</li>
+                <li>Edge strength: {{ analysis_result.edge_strength }}</li>
+                <li>Left-right asymmetry: {{ analysis_result.asymmetry }}</li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+</section>
 {% endblock %}

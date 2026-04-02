@@ -6,6 +6,7 @@ from base64 import b64encode
 from datetime import datetime, timedelta, timezone   
 from functools import wraps
 from hashlib import sha256
+import json
 from urllib.error import HTTPError
 from urllib.error import URLError
 from urllib.parse import urlencode
@@ -26,6 +27,8 @@ from sqlalchemy import text
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
+from xray_model import predict_xray
+
 from .forms import (
     DeletePatientForm,
     NurseAddPatientForm,
@@ -34,10 +37,12 @@ from .forms import (
     PatientExpenseForm,
     PatientHospitalCodeForm,
     PatientLoginForm,
-    PatientRegisterForm,
+    PatientRegisterRequestForm,
+    PatientRegisterVerifyForm,
     PatientReportUploadForm,
     PatientResetPasswordRequestForm,
     PatientResetPasswordVerifyForm,
+    PatientXrayAnalysisForm,
 )
 from .models import (
     NurseLogin,
@@ -160,6 +165,29 @@ def clear_reset_otp_session() -> None:
     session.pop("reset_otp_attempts", None)
 
 
+def clear_registration_otp_session() -> None:
+    session.pop("registration_patient_name", None)
+    session.pop("registration_phone_number", None)
+    session.pop("registration_username", None)
+    session.pop("registration_password_hash", None)
+    session.pop("registration_otp_hash", None)
+    session.pop("registration_otp_expires_at", None)
+    session.pop("registration_otp_attempts", None)
+
+
+def get_patient_chat_history() -> list[dict[str, str]]:
+    history = session.get("patient_chat_history", [])
+    return history if isinstance(history, list) else []
+
+
+def save_patient_chat_history(history: list[dict[str, str]]) -> None:
+    session["patient_chat_history"] = history[-10:]
+
+
+def clear_patient_chat_history() -> None:
+    session.pop("patient_chat_history", None)
+
+
 def send_sms_via_twilio(to_number: str, body: str) -> bool:
     account_sid = (current_app.config.get("TWILIO_ACCOUNT_SID") or "").strip()
     auth_token = (current_app.config.get("TWILIO_AUTH_TOKEN") or "").strip()
@@ -217,6 +245,167 @@ def send_sms_via_twilio(to_number: str, body: str) -> bool:
         return False
 
 
+def build_patient_chat_context(
+    prompt: str,
+    patient: PatientLogin,
+    care_record: PatientCareRecord | None,
+    chat_history: list[dict[str, str]],
+    file_label: str | None = None,
+    preferred_language: str = "en",
+) -> str:
+    care_summary = "No current care updates yet."
+    if care_record is not None:
+        care_summary = (
+            f"Room: {patient.room_number or 'Unassigned'}\n"
+            f"Medications: {care_record.medications or 'No updates yet'}\n"
+            f"Injections: {care_record.injections or 'No updates yet'}\n"
+            f"Prescriptions: {care_record.prescriptions or 'No updates yet'}\n"
+            f"Notes: {care_record.notes or 'No updates yet'}"
+        )
+
+    recent_history = []
+    for item in chat_history[-6:]:
+        role = "Patient" if item.get("role") == "user" else "Assistant"
+        recent_history.append(f"{role}: {item.get('message', '')}")
+    history_text = "\n".join(recent_history) if recent_history else "No prior conversation."
+
+    language_instruction = (
+        "Reply fully in Hindi using simple everyday wording."
+        if preferred_language == "hi"
+        else "Reply fully in English."
+    )
+
+    return (
+        "You are a calm hospital support assistant for a patient portal. "
+        "Answer clearly, briefly, and in plain language. Use the supplied patient context when helpful, "
+        "but do not invent medical facts. For health questions, first provide simple general guidance "
+        "the patient can understand, then advise contacting hospital staff when appropriate. "
+        "Only jump straight to emergency escalation if the situation sounds severe or life-threatening. "
+        "Do not claim to be a doctor. If a report is attached, summarize it in simple language and mention any visible values "
+        "that appear low, high, abnormal, or important, but always tell the patient to confirm the interpretation with hospital staff. "
+        f"{language_instruction}\n\n"
+        f"Patient name: {patient.patient_name}\n"
+        f"Patient context:\n{care_summary}\n\n"
+        f"Recent conversation:\n{history_text}\n\n"
+        f"Attached report: {file_label or 'None'}\n\n"
+        f"Patient question: {prompt}"
+    )
+
+
+def extract_chat_upload(file_storage) -> tuple[dict | None, str | None]:
+    if file_storage is None or not file_storage.filename:
+        return None, None
+
+    mime_type = (file_storage.mimetype or "").strip().lower()
+    if mime_type not in {"application/pdf", "image/jpeg", "image/png"}:
+        raise RuntimeError("Only PDF, JPG, JPEG, and PNG report files are supported.")
+
+    file_bytes = file_storage.read()
+    if not file_bytes:
+        raise RuntimeError("Uploaded report file is empty.")
+    if len(file_bytes) > 15 * 1024 * 1024:
+        raise RuntimeError("Report file is too large. Please upload a file under 15 MB.")
+
+    return (
+        {
+            "inline_data": {
+                "mime_type": mime_type,
+                "data": b64encode(file_bytes).decode("ascii"),
+            }
+        },
+        file_storage.filename,
+    )
+
+
+def analyze_xray_image(file_storage) -> tuple[dict[str, str | int | float], str]:
+    file_bytes = file_storage.read()
+    if not file_bytes:
+        raise RuntimeError("Uploaded X-ray image is empty.")
+    if len(file_bytes) > 10 * 1024 * 1024:
+        raise RuntimeError("X-ray image is too large. Please upload a file under 10 MB.")
+
+    result = predict_xray(file_bytes)
+    result["filename"] = secure_filename(file_storage.filename or "xray-image")
+    preview_url = f"data:{(file_storage.mimetype or 'image/png')};base64,{b64encode(file_bytes).decode('ascii')}"
+    return result, preview_url
+
+
+def ask_gemini(
+    prompt: str,
+    patient: PatientLogin,
+    care_record: PatientCareRecord | None,
+    chat_history: list[dict[str, str]],
+    upload_part: dict | None = None,
+    file_label: str | None = None,
+    preferred_language: str = "en",
+) -> str:
+    api_key = (current_app.config.get("GEMINI_API_KEY") or "").strip()
+    model = (current_app.config.get("GEMINI_MODEL") or "gemini-2.5-flash").strip()
+    if not api_key:
+        raise RuntimeError("Gemini API key is not configured in .env.")
+
+    endpoint = (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{model}:generateContent?key={api_key}"
+    )
+    parts = [
+        {
+            "text": build_patient_chat_context(
+                prompt, patient, care_record, chat_history, file_label, preferred_language
+            )
+        }
+    ]
+    if upload_part is not None:
+        parts.append(upload_part)
+
+    payload = json.dumps({"contents": [{"parts": parts}]}).encode("utf-8")
+    request_obj = Request(
+        endpoint,
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+        method="POST",
+    )
+
+    with urlopen(request_obj, timeout=60) as response:
+        body = response.read().decode("utf-8")
+
+    response_payload = json.loads(body)
+    candidates = response_payload.get("candidates") or []
+    if not candidates:
+        raise RuntimeError("Gemini returned no response.")
+
+    parts = candidates[0].get("content", {}).get("parts", [])
+    text_parts = [part.get("text", "") for part in parts if part.get("text")]
+    reply = "\n".join(text_parts).strip()
+    if not reply:
+        raise RuntimeError("Gemini returned an empty reply.")
+    return reply
+
+
+def describe_chatbot_error(exc: Exception) -> str:
+    if isinstance(exc, HTTPError):
+        if exc.code == 400:
+            return "Gemini request was invalid. Check the configured Gemini model name."
+        if exc.code == 401:
+            return "Gemini API key is invalid or missing."
+        if exc.code == 403:
+            return "Gemini blocked the request. Check project access, API enablement, or billing."
+        if exc.code == 404:
+            return "Gemini model not found. Check GEMINI_MODEL in .env."
+        if exc.code == 429:
+            return "Gemini usage limit reached or too many requests right now."
+        return f"Gemini returned HTTP {exc.code}."
+    if isinstance(exc, URLError):
+        return "Could not connect to Gemini. Check your internet connection."
+    message = str(exc).strip()
+    if message:
+        return message
+    return "Unknown Gemini chatbot error."
+
+
 def get_alert_sms_number() -> str:
     return normalize_phone_number(current_app.config.get("SMS_ALERT_TO_NUMBER") or "")
 
@@ -225,6 +414,16 @@ def send_password_reset_otp(phone_number: str, otp_code: str) -> bool:
     return send_sms_via_twilio(
         get_alert_sms_number(),
         f"Your Hawkins Lab reset OTP is {otp_code}. It expires in 5 minutes.",
+    )
+
+
+def send_registration_otp(patient_name: str, phone_number: str, otp_code: str) -> bool:
+    return send_sms_via_twilio(
+        get_alert_sms_number(),
+        (
+            f"Patient registration OTP for {patient_name} ({phone_number}) is {otp_code}. "
+            "It expires in 5 minutes."
+        ),
     )
 
 
@@ -329,6 +528,7 @@ def register_routes(app) -> None:
     # Logout route that clears session and returns to home.
     @app.route("/logout")
     def logout():
+        clear_patient_chat_history()
         session.clear()
         flash("Exited the Hawkins system.", "success")
         return redirect(url_for("home"))
@@ -336,35 +536,166 @@ def register_routes(app) -> None:
     # Patient registration route to create login and initial care record.
     @app.route("/patient/register", methods=["GET", "POST"])
     def patient_register():
-        form = PatientRegisterForm()
-        if form.validate_on_submit():
-            phone_number = form.phone_number.data.strip()
+        otp_request_form = PatientRegisterRequestForm(prefix="otp_request")
+        otp_verify_form = PatientRegisterVerifyForm(prefix="otp_verify")
+
+        if otp_request_form.send_otp.data and otp_request_form.validate_on_submit():
+            phone_number = otp_request_form.phone_number.data.strip()
             existing_user = PatientLogin.query.filter(
                 (PatientLogin.phone_number == phone_number)
-                | (PatientLogin.username == form.username.data.strip())
+                | (PatientLogin.username == otp_request_form.username.data.strip())
             ).first()
             if existing_user:
                 flash("Username or contact number already exists.", "error")
-                return render_template("patient_register.html", form=form)
+                return render_template(
+                    "patient_register.html",
+                    otp_request_form=otp_request_form,
+                    otp_verify_form=otp_verify_form,
+                    otp_step_active=False,
+                )
+
+            otp_code = generate_otp_code()
+            sms_sent = send_registration_otp(
+                otp_request_form.patient_name.data.strip(),
+                phone_number,
+                otp_code,
+            )
+            if not sms_sent:
+                flash("Unable to send OTP right now. Please try again shortly.", "error")
+                return render_template(
+                    "patient_register.html",
+                    otp_request_form=otp_request_form,
+                    otp_verify_form=otp_verify_form,
+                    otp_step_active=False,
+                )
+
+            session["registration_patient_name"] = otp_request_form.patient_name.data.strip()
+            session["registration_phone_number"] = phone_number
+            session["registration_username"] = otp_request_form.username.data.strip()
+            session["registration_password_hash"] = generate_password_hash(
+                otp_request_form.password.data
+            )
+            session["registration_otp_hash"] = generate_password_hash(
+                build_otp_digest(phone_number, otp_code)
+            )
+            session["registration_otp_expires_at"] = int(
+                (datetime.utcnow() + timedelta(minutes=5)).timestamp()
+            )
+            session["registration_otp_attempts"] = 0
+            otp_verify_form.phone_number.data = phone_number
+            flash("OTP sent successfully. It is valid for 5 minutes.", "success")
+            return render_template(
+                "patient_register.html",
+                otp_request_form=otp_request_form,
+                otp_verify_form=otp_verify_form,
+                otp_step_active=True,
+            )
+
+        if otp_verify_form.submit.data and otp_verify_form.validate_on_submit():
+            patient_name = session.get("registration_patient_name")
+            phone_number = session.get("registration_phone_number")
+            username = session.get("registration_username")
+            password_hash = session.get("registration_password_hash")
+            otp_hash = session.get("registration_otp_hash")
+            expires_at = int(session.get("registration_otp_expires_at", 0))
+            attempts = int(session.get("registration_otp_attempts", 0))
+            now_timestamp = int(datetime.utcnow().timestamp())
+
+            if not all([patient_name, phone_number, username, password_hash, otp_hash]):
+                flash("Please request OTP first.", "error")
+                return render_template(
+                    "patient_register.html",
+                    otp_request_form=otp_request_form,
+                    otp_verify_form=otp_verify_form,
+                    otp_step_active=False,
+                )
+
+            if otp_verify_form.phone_number.data.strip() != phone_number:
+                flash("Phone number does not match requested OTP number.", "error")
+                return render_template(
+                    "patient_register.html",
+                    otp_request_form=otp_request_form,
+                    otp_verify_form=otp_verify_form,
+                    otp_step_active=True,
+                )
+
+            if now_timestamp > expires_at:
+                clear_registration_otp_session()
+                flash("OTP expired. Please request a new OTP.", "error")
+                return render_template(
+                    "patient_register.html",
+                    otp_request_form=otp_request_form,
+                    otp_verify_form=otp_verify_form,
+                    otp_step_active=False,
+                )
+
+            if attempts >= 5:
+                clear_registration_otp_session()
+                flash("Too many invalid attempts. Please request OTP again.", "error")
+                return render_template(
+                    "patient_register.html",
+                    otp_request_form=otp_request_form,
+                    otp_verify_form=otp_verify_form,
+                    otp_step_active=False,
+                )
+
+            provided_digest = build_otp_digest(
+                otp_verify_form.phone_number.data.strip(),
+                otp_verify_form.otp_code.data.strip(),
+            )
+            if not check_password_hash(otp_hash, provided_digest):
+                attempts += 1
+                session["registration_otp_attempts"] = attempts
+                remaining = max(0, 5 - attempts)
+                flash(f"Invalid OTP. {remaining} attempt(s) remaining.", "error")
+                return render_template(
+                    "patient_register.html",
+                    otp_request_form=otp_request_form,
+                    otp_verify_form=otp_verify_form,
+                    otp_step_active=True,
+                )
+
+            existing_user = PatientLogin.query.filter(
+                (PatientLogin.phone_number == phone_number)
+                | (PatientLogin.username == username)
+            ).first()
+            if existing_user:
+                clear_registration_otp_session()
+                flash("Username or contact number already exists.", "error")
+                return render_template(
+                    "patient_register.html",
+                    otp_request_form=otp_request_form,
+                    otp_verify_form=otp_verify_form,
+                    otp_step_active=False,
+                )
 
             patient = PatientLogin(
-                patient_name=form.patient_name.data.strip(),
+                patient_name=patient_name,
                 phone_number=phone_number,
-                username=form.username.data.strip(),
+                username=username,
+                password_hash=password_hash,
             )
-            patient.set_password(form.password.data)
             db.session.add(patient)
             db.session.flush()
             db.session.add(PatientCareRecord(patient_id=patient.id))
             db.session.commit()
+            clear_registration_otp_session()
             flash("Case file created. Please sign in.", "success")
             return redirect(url_for("patient_login"))
-        if request.method == "POST" and form.errors:
-            for _, errors in form.errors.items():
+
+        if request.method == "POST":
+            active_form = otp_verify_form if otp_verify_form.submit.data else otp_request_form
+            for _, errors in active_form.errors.items():
                 for error in errors:
                     flash(error, "error")
 
-        return render_template("patient_register.html", form=form)
+        otp_verify_form.phone_number.data = session.get("registration_phone_number", "")
+        return render_template(
+            "patient_register.html",
+            otp_request_form=otp_request_form,
+            otp_verify_form=otp_verify_form,
+            otp_step_active=bool(session.get("registration_otp_hash")),
+        )
 
     # Patient login route to authenticate and initialize patient session.
     @app.route("/patient/login", methods=["GET", "POST"])
@@ -378,6 +709,7 @@ def register_routes(app) -> None:
                 session["patient_id"] = patient.id
                 session["username"] = patient.username
                 session["care_code_verified"] = False
+                clear_patient_chat_history()
                 flash("Subject login successful.", "success")
                 return redirect(url_for("patient_dashboard"))
             flash("Invalid credentials.", "error")
@@ -816,12 +1148,117 @@ def register_routes(app) -> None:
         flash("Personal document deleted.", "success")
         return redirect(url_for("patient_reports"))
 
+    # Patient support chatbot powered by Gemini.
+    @app.route("/patient/chatbot", methods=["GET", "POST"])
+    @patient_required
+    def patient_chatbot():
+        patient = PatientLogin.query.get_or_404(session["patient_id"])
+        care_record = get_or_create_care_record(patient.id)
+        chat_history = get_patient_chat_history()
+
+        if request.method == "POST":
+            if request.form.get("action") == "clear":
+                clear_patient_chat_history()
+                flash("Chat conversation cleared.", "success")
+                return redirect(url_for("patient_chatbot"))
+
+            prompt = (request.form.get("message") or "").strip()
+            preferred_language = "hi" if (request.form.get("ui_language") or "").strip() == "hi" else "en"
+            try:
+                upload_part, file_label = extract_chat_upload(request.files.get("report_file"))
+            except Exception as exc:
+                flash(str(exc), "error")
+                return render_template(
+                    "patient_chatbot.html",
+                    patient=patient,
+                    care_record=care_record,
+                    chat_history=chat_history,
+                    draft_message=prompt,
+                    ui_language=preferred_language,
+                    chatbot_provider=f"Gemini / {current_app.config.get('GEMINI_MODEL')}",
+                )
+
+            if not prompt and upload_part is None:
+                flash("Enter a message or upload a report for analysis.", "error")
+                return render_template(
+                    "patient_chatbot.html",
+                    patient=patient,
+                    care_record=care_record,
+                    chat_history=chat_history,
+                    ui_language=preferred_language,
+                    chatbot_provider=f"Gemini / {current_app.config.get('GEMINI_MODEL')}",
+                )
+
+            if not prompt and upload_part is not None:
+                prompt = (
+                    "Analyze this report in simple language. Tell me the important values you can read, "
+                    "mention anything that looks low, high, or abnormal, and tell me to confirm with hospital staff."
+                )
+
+            try:
+                reply = ask_gemini(
+                    prompt,
+                    patient,
+                    care_record,
+                    chat_history,
+                    upload_part=upload_part,
+                    file_label=file_label,
+                    preferred_language=preferred_language,
+                )
+            except Exception as exc:
+                current_app.logger.warning("Gemini chatbot failed: %s", exc)
+                flash(describe_chatbot_error(exc), "error")
+                return render_template(
+                    "patient_chatbot.html",
+                    patient=patient,
+                    care_record=care_record,
+                    chat_history=chat_history,
+                    draft_message=prompt,
+                    ui_language=preferred_language,
+                    chatbot_provider=f"Gemini / {current_app.config.get('GEMINI_MODEL')}",
+                )
+
+            user_message = prompt if not file_label else f"{prompt}\n[Attached report: {file_label}]"
+            chat_history.append({"role": "user", "message": user_message})
+            chat_history.append({"role": "assistant", "message": reply})
+            save_patient_chat_history(chat_history)
+            return redirect(url_for("patient_chatbot"))
+
+        return render_template(
+            "patient_chatbot.html",
+            patient=patient,
+            care_record=care_record,
+            chat_history=chat_history,
+            ui_language="en",
+            chatbot_provider=f"Gemini / {current_app.config.get('GEMINI_MODEL')}",
+        )
+
     # X-ray page route for the logged-in patient.
-    @app.route("/patient/xray")
+    @app.route("/patient/xray", methods=["GET", "POST"])
     @patient_required
     def patient_xray():
         patient = PatientLogin.query.get_or_404(session["patient_id"])
-        return render_template("patient_xray.html", patient=patient)
+        form = PatientXrayAnalysisForm()
+        analysis_result = None
+        preview_url = None
+
+        if form.validate_on_submit():
+            try:
+                analysis_result, preview_url = analyze_xray_image(form.xray_file.data)
+            except Exception as exc:
+                flash(str(exc), "error")
+        elif request.method == "POST":
+            for _, errors in form.errors.items():
+                for error in errors:
+                    flash(error, "error")
+
+        return render_template(
+            "patient_xray.html",
+            patient=patient,
+            form=form,
+            analysis_result=analysis_result,
+            preview_url=preview_url,
+        )
 
     # Route allowing discharged patients to permanently delete records.
     @app.route("/patient/delete-records", methods=["POST"])

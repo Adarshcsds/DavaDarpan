@@ -14,36 +14,86 @@
 </div>
 <section class="card" style="max-width: 520px; margin: 0 auto;">
     <h1>New Subject Registration</h1>
-    <p>Enter your details to open a new case file.</p>
+    <p>Enter your details, request OTP, then verify it to open a new case file.</p>
 
-    <form method="post" action="{{ url_for('patient_register') }}">
-        {{ form.hidden_tag() }}
+    <form method="post" action="{{ url_for('patient_register') }}" style="margin-bottom: 1.5rem;">
+        {{ otp_request_form.hidden_tag() }}
         <div class="form-group">
             <label for="patient_name">Subject Name</label>
-            <input id="patient_name" name="patient_name" type="text" placeholder="Enter full name" required>
+            {{ otp_request_form.patient_name(
+                id="patient_name",
+                type="text",
+                placeholder="Enter full name",
+                required=true
+            ) }}
         </div>
 
         <div class="form-group">
             <label for="phone_number">Contact Number</label>
-            <input id="phone_number" name="phone_number" type="tel" placeholder="Enter phone number" required>
+            {{ otp_request_form.phone_number(
+                id="phone_number",
+                type="tel",
+                placeholder="Enter phone number",
+                required=true
+            ) }}
         </div>
 
         <div class="form-group">
             <label for="username">Username</label>
-            <input id="username" name="username" type="text" placeholder="Choose username" required>
+            {{ otp_request_form.username(
+                id="username",
+                type="text",
+                placeholder="Choose username",
+                required=true
+            ) }}
         </div>
 
         <div class="form-group">
             <label for="password">Password</label>
-            <input id="password" name="password" type="password" placeholder="Create password" required>
+            {{ otp_request_form.password(
+                id="password",
+                type="password",
+                placeholder="Create password",
+                required=true
+            ) }}
         </div>
 
         <div class="form-group">
             <label for="confirm_password">Confirm Password</label>
-            <input id="confirm_password" name="confirm_password" type="password" placeholder="Re-enter password" required>
+            {{ otp_request_form.confirm_password(
+                id="confirm_password",
+                type="password",
+                placeholder="Re-enter password",
+                required=true
+            ) }}
         </div>
 
-        <button class="btn" type="submit">Create File</button>
+        {{ otp_request_form.send_otp(class_="btn") }}
+    </form>
+
+    <form method="post" action="{{ url_for('patient_register') }}">
+        {{ otp_verify_form.hidden_tag() }}
+        <p style="margin-bottom: 1rem;">Enter the OTP sent to the configured SMS number to finish registration.</p>
+        <div class="form-group">
+            <label for="{{ otp_verify_form.phone_number.id }}">Contact Number</label>
+            {{ otp_verify_form.phone_number(
+                id=otp_verify_form.phone_number.id,
+                type="tel",
+                placeholder="Enter the same phone number",
+                required=true
+            ) }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ otp_verify_form.otp_code.id }}">OTP</label>
+            {{ otp_verify_form.otp_code(
+                id=otp_verify_form.otp_code.id,
+                placeholder="Enter 6-digit OTP",
+                required=true
+            ) }}
+        </div>
+
+        {{ otp_verify_form.submit(class_="btn") }}
     </form>
 
     <div class="links">

@@ -15,3 +15,5 @@ class Config:
     TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
     SMS_FROM_NUMBER = os.getenv("SMS_FROM_NUMBER")
     SMS_ALERT_TO_NUMBER = os.getenv("SMS_ALERT_TO_NUMBER")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")

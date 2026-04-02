@@ -7,7 +7,7 @@ from wtforms.validators import DataRequired, EqualTo, Length, NumberRange, Regex
 PHONE_REGEX = r"^\d{10}$"
 
 
-class PatientRegisterForm(FlaskForm):
+class PatientRegisterRequestForm(FlaskForm):
     patient_name = StringField(
         "Patient Name",
         validators=[DataRequired(), Length(min=2, max=120)],
@@ -34,7 +34,25 @@ class PatientRegisterForm(FlaskForm):
             EqualTo("password", message="Passwords must match."),
         ],
     )
-    submit = SubmitField("Register")
+    send_otp = SubmitField("Send OTP")
+
+
+class PatientRegisterVerifyForm(FlaskForm):
+    phone_number = StringField(
+        "Phone Number",
+        validators=[
+            DataRequired(),
+            Regexp(PHONE_REGEX, message="Phone number must be exactly 10 digits."),
+        ],
+    )
+    otp_code = StringField(
+        "OTP",
+        validators=[
+            DataRequired(),
+            Regexp(r"^\d{6}$", message="OTP must be exactly 6 digits."),
+        ],
+    )
+    submit = SubmitField("Verify OTP & Register")
 
 
 class PatientLoginForm(FlaskForm):
@@ -164,6 +182,20 @@ class PatientReportUploadForm(FlaskForm):
         ],
     )
     submit = SubmitField("Upload Report")
+
+
+class PatientXrayAnalysisForm(FlaskForm):
+    xray_file = FileField(
+        "Upload X-Ray (JPG/PNG)",
+        validators=[
+            FileRequired(),
+            FileAllowed(
+                ["jpg", "jpeg", "png"],
+                "Only JPG, JPEG, and PNG X-ray images are allowed.",
+            ),
+        ],
+    )
+    submit = SubmitField("Analyze X-Ray")
 
 
 class PatientExpenseForm(FlaskForm):
