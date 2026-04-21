@@ -8,3 +8,4 @@ joblib==1.4.2
 numpy==1.26.4
 scikit-learn==1.5.1
 gunicorn==22.0.0
+psycopg2-binary==2.9.9
