@@ -21,7 +21,7 @@ from flask import (
     session,
     url_for,
 )
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 from werkzeug.utils import secure_filename
 
 from xray_model import predict_xray
@@ -327,8 +327,10 @@ def initialize_database(app) -> None:
         os.makedirs(app.config["REPORT_UPLOAD_FOLDER"], exist_ok=True)
         os.makedirs(app.config["PERSONAL_DOC_UPLOAD_FOLDER"], exist_ok=True)
         db.create_all()
-        columns = db.session.execute(text("PRAGMA table_info(patient_login)")).fetchall()
-        column_names = {column[1] for column in columns}
+        inspector = inspect(db.engine)
+        column_names = {
+            column["name"] for column in inspector.get_columns("patient_login")
+        }
         if "room_number" not in column_names:
             db.session.execute(
                 text("ALTER TABLE patient_login ADD COLUMN room_number VARCHAR(20)")
@@ -350,8 +352,10 @@ def initialize_database(app) -> None:
             )
             db.session.commit()
 
-        nurse_columns = db.session.execute(text("PRAGMA table_info(nurse_login)")).fetchall()
-        nurse_column_names = {column[1] for column in nurse_columns}
+        inspector.clear_cache()
+        nurse_column_names = {
+            column["name"] for column in inspector.get_columns("nurse_login")
+        }
         if "hospital_code" not in nurse_column_names:
             db.session.execute(
                 text("ALTER TABLE nurse_login ADD COLUMN hospital_code VARCHAR(30)")
