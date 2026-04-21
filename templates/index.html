@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Gateway Selection | Hawkins Lab{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block extra_head %}
+<style>
+    .auth-page h1,
+    .auth-page h2 {
+        letter-spacing: 0.03em;
+        text-shadow: 0 0 4px rgba(217, 42, 42, 0.2);
+    }
+
+    .auth-page p {
+        color: #e3d6d6;
+        text-shadow: none;
+    }
+
+    .gateway-card {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .gateway-card .btn {
+        margin-top: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1>Hawkins Health Lab Gateway</h1>
+    <p>Choose your portal before the gate opens.</p>
+
+    <div class="grid">
+        <div class="card gateway-card">
+            <h2>Hopper Desk Login</h2>
+            <p>For staff controlling the ward timeline.</p>
+            <a class="btn" href="{{ url_for('nurse_login') }}">Enter Staff Desk</a>
+        </div>
+
+        <div class="card gateway-card">
+            <h2>Returning Subject</h2>
+            <p>If you already have a case file.</p>
+            <a class="btn" href="{{ url_for('patient_login') }}">Open Subject Login</a>
+        </div>
+
+        <div class="card gateway-card">
+            <h2>New Subject</h2>
+            <p>Create a new case file.</p>
+            <a class="btn" href="{{ url_for('patient_register') }}">Create Subject File</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

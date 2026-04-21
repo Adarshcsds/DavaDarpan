@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Control Room | Hawkins Lab{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1>Hopper Desk Control Room</h1>
+    <p><strong>Hospital Code:</strong> {{ hospital_code }}</p>
+    <p>Subject roster with room assignments. Open any file to update care logs.</p>
+    <a class="btn btn-inline" href="{{ url_for('nurse_add_patient') }}">Add New Subject</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Subject Name</th>
+                <th>Room</th>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Discharged At</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients %}
+            <tr>
+                <td>{{ patient.patient_name }}</td>
+                <td>{{ patient.room_number or "Unassigned" }}</td>
+                <td>{{ patient.username }}</td>
+                <td>{{ "Discharged" if patient.is_discharged else "Admitted" }}</td>
+                <td>{{ patient.discharged_at | ist_datetime if patient.discharged_at else "-" }}</td>
+                <td>
+                    <a href="{{ url_for('nurse_patient_detail', patient_id=patient.id) }}">Open File</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6">No subject files found for this hospital code.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

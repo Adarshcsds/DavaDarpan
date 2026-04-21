@@ -1,0 +1,48 @@
+PATIENT USER FLOW - HIERARCHICAL DIAGRAM
+
+Patient
+|
++-- Open App / Website
+    |
+    +-- Login / Register
+        |
+        +-- Search Doctor / Service
+            |
+            +-- Select Appointment Slot
+                |
+                +-- Enter Symptoms / Reason for Visit
+                    |
+                    +-- Confirm Booking
+                        |
+                        +-- Check In
+                            |
+                            +-- Doctor Consultation
+                                |
+                                +-- Receive Prescription / Treatment
+                                    |
+                                    +-- View Records and Follow-Up
+
+
+NURSE USER FLOW - HIERARCHICAL DIAGRAM
+
+Nurse
+|
++-- Login to System
+    |
+    +-- View Assigned Patients
+        |
+        +-- Check Patient Details
+            |
+            +-- Record Vitals
+                |
+                +-- Update Patient Status
+                    |
+                    +-- Assist Doctor
+                        |
+                        +-- Administer Medication / Care
+                            |
+                            +-- Document Observations
+                                |
+                                +-- Alert Doctor if Needed
+                                    |
+                                    +-- Close Task

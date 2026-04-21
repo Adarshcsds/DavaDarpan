@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Subject Login | Hawkins Lab{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<section class="card" style="max-width: 520px; margin: 0 auto;">
+    <h1>Returning Subject Login</h1>
+    <p>Sign in with your subject username and password.</p>
+
+    <form method="post" action="{{ url_for('patient_login') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" placeholder="Enter username" autocomplete="username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" placeholder="Enter password" autocomplete="current-password" required>
+        </div>
+
+        <button class="btn" type="submit">Enter Portal</button>
+    </form>
+
+    <div class="links">
+        <a href="{{ url_for('patient_register') }}">New subject? Create file</a>
+        <a href="{{ url_for('home') }}">Back to gateway</a>
+    </div>
+</section>
+{% endblock %}
+

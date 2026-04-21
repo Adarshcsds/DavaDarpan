@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hawkins Health Lab{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: rgba(10, 12, 16, 0.28);
+            --primary: #0f5c8a;
+            --primary-hover: #0a466a;
+            --text: #f6f1f1;
+            --muted: rgba(255, 255, 255, 0.82);
+            --border: rgba(255, 255, 255, 0.18);
+            --danger: #b91c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(180deg, #eef5ff 0%, var(--bg) 60%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            width: min(960px, 92%);
+            margin: 2rem auto;
+        }
+
+        .topbar {
+            width: min(960px, 92%);
+            margin: 1rem auto 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .topbar a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(22px) saturate(140%);
+            -webkit-backdrop-filter: blur(22px) saturate(140%);
+        }
+
+        h1, h2 {
+            margin-bottom: 0.75rem;
+        }
+
+        p {
+            color: var(--muted);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.7rem 0.75rem;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.88);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            caret-color: #ffffff;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: 2px solid rgba(15, 92, 138, 0.2);
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.94);
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            border: none;
+            background: var(--primary);
+            color: #fff;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: #f0f8ff;
+        }
+
+        .btn-danger {
+            background: #b66019;
+        }
+
+        .btn-danger:hover {
+            background: #2e1b99;
+        }
+
+        .btn-inline {
+            width: auto;
+            display: inline-block;
+        }
+
+        .links {
+            margin-top: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.92rem;
+        }
+
+        .links a.danger {
+            color: var(--danger);
+        }
+
+        .alerts {
+            margin-bottom: 1rem;
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 0.65rem 0.75rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.92rem;
+        }
+
+        .alert-success {
+            background: #ecfdf3;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--border);
+            padding: 0.7rem 0.5rem;
+            text-align: left;
+        }
+
+        .meta {
+            font-size: 0.88rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .lang-switch {
+            display: inline-flex;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .lang-btn {
+            border: none;
+            background: transparent;
+            color: var(--primary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 0.3rem 0.7rem;
+            cursor: pointer;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .lang-sep {
+            color: var(--muted);
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth_slider.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <div class="auth-slider" aria-hidden="true">
+        <div class="auth-slide slide-red"></div>
+        <div class="auth-slide slide-blue"></div>
+        <div class="auth-slide slide-green"></div>
+        <div class="auth-slide slide-gold"></div>
+    </div>
+    <audio id="bg-audio" loop preload="auto" hidden>
+        <source src="{{ url_for('static', filename='audio/WhatsApp Audio 2026-03-03 at 11.44.46 AM.mpeg') }}" type="audio/mpeg">
+    </audio>
+    <header class="topbar">
+        <a href="{{ url_for('home') }}">Hawkins Health Lab</a>
+        <div class="meta">
+            <div class="lang-switch" aria-label="Language switch">
+                <button type="button" class="lang-btn" data-lang="en">English</button>
+                <button type="button" class="lang-btn" data-lang="hi">हिंदी</button>
+            </div>
+            {% if session.get('username') %}
+                <span data-i18n="logged_in_as">Signed in as</span> {{ session.get('username') }} (<span data-role-translate>{{ session.get('role') }}</span>) <span class="lang-sep">|</span>
+                <a href="{{ url_for('logout') }}" data-i18n="logout">Exit</a>
+            {% endif %}
+        </div>
+    </header>
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <script>
+        (function () {
+            const STORAGE_KEY = "hm_lang";
+            const textMapHi = {
+                "Hospital Management": "हॉस्पिटल मैनेजमेंट",
+                "Hospital Management Portal": "हॉस्पिटल मैनेजमेंट पोर्टल",
+                "Please choose how you want to continue.": "कृपया आगे बढ़ने का तरीका चुनें।",
+                "Nurse Login": "नर्स लॉगिन",
+                "For nurse staff access.": "नर्स स्टाफ एक्सेस के लिए।",
+                "Login as Nurse": "नर्स के रूप में लॉगिन",
+                "Existing Patient": "मौजूदा मरीज",
+                "If you already have an account.": "यदि आपका पहले से अकाउंट है।",
+                "Patient Login": "मरीज लॉगिन",
+                "New Patient": "नया मरीज",
+                "Create a patient account.": "मरीज अकाउंट बनाएं।",
+                "Patient Register": "मरीज रजिस्टर",
+                "Patient Registration": "मरीज पंजीकरण",
+                "Fill in your details to create a patient account.": "मरीज अकाउंट बनाने के लिए अपनी जानकारी भरें।",
+                "Patient Name": "मरीज का नाम",
+                "Phone Number": "फोन नंबर",
+                "Username": "यूजरनेम",
+                "Password": "पासवर्ड",
+                "Confirm Password": "पासवर्ड की पुष्टि करें",
+                "Register": "रजिस्टर करें",
+                "Already have an account? Login": "पहले से अकाउंट है? लॉगिन करें",
+                "Back to home": "होम पर वापस जाएं",
+                "Login with your patient username and password.": "अपने मरीज यूजरनेम और पासवर्ड से लॉगिन करें।",
+                "Login using your nurse credentials.": "अपने नर्स क्रेडेंशियल्स से लॉगिन करें।",
+                "Login": "लॉगिन",
+                "New patient? Register": "नया मरीज? रजिस्टर करें",
+                "Update your password using your phone number.": "अपने फोन नंबर से पासवर्ड अपडेट करें।",
+                "Patient Dashboard": "मरीज डैशबोर्ड",
+                "Family/patient can view nurse-updated treatment details and uploaded reports.": "परिवार/मरीज नर्स द्वारा अपडेट की गई उपचार जानकारी और रिपोर्ट देख सकते हैं।",
+                "Name": "नाम",
+                "Room No.": "रूम नं.",
+                "Medications": "दवाइयां",
+                "Injections": "इंजेक्शन",
+                "Prescriptions": "प्रिस्क्रिप्शन",
+                "Notes": "नोट्स",
+                "Last Updated": "अंतिम अपडेट",
+                "Not Assigned": "अभी असाइन नहीं",
+                "Not updated yet": "अभी अपडेट नहीं हुआ",
+                "Upload Report (Patient Only)": "रिपोर्ट अपलोड (केवल मरीज)",
+                "Upload PDF directly or camera image (JPG/PNG), which is stored as PDF.": "PDF या कैमरा इमेज (JPG/PNG) अपलोड करें, इसे PDF के रूप में सेव किया जाएगा।",
+                "Report File": "रिपोर्ट फाइल",
+                "Upload Report": "रिपोर्ट अपलोड करें",
+                "My Reports": "मेरी रिपोर्ट्स",
+                "Original File": "मूल फाइल",
+                "Uploaded At": "अपलोड समय",
+                "View": "देखें",
+                "Open": "खोलें",
+                "No reports uploaded yet.": "अभी कोई रिपोर्ट अपलोड नहीं हुई।",
+                "Nurse Dashboard": "नर्स डैशबोर्ड",
+                "Patient list with room numbers. Open any patient to view and update full details.": "रूम नंबर सहित मरीज सूची। किसी भी मरीज को खोलकर पूरी जानकारी देखें और अपडेट करें।",
+                "Add New Patient": "नया मरीज जोड़ें",
+                "Patient Name": "मरीज का नाम",
+                "Action": "कार्य",
+                "No patients found.": "कोई मरीज नहीं मिला।",
+                "Add Patient": "मरीज जोड़ें",
+                "Nurse can create a patient account with username, phone number, and password.": "नर्स यूजरनेम, फोन नंबर और पासवर्ड से मरीज अकाउंट बना सकती है।",
+                "Patient Username": "मरीज यूजरनेम",
+                "Room Number": "रूम नंबर",
+                "Create Patient": "मरीज बनाएं",
+                "Back to dashboard": "डैशबोर्ड पर वापस जाएं",
+                "Patient Detail": "मरीज विवरण",
+                "Update medications, injections, reports visibility, and prescriptions. Every save creates an edit timestamp entry.": "दवाएं, इंजेक्शन, रिपोर्ट और प्रिस्क्रिप्शन अपडेट करें। हर सेव पर टाइमस्टैम्प एंट्री बनती है।",
+                "Patient Username:": "मरीज यूजरनेम:",
+                "Phone:": "फोन:",
+                "Additional Notes": "अतिरिक्त नोट्स",
+                "Save Details": "विवरण सेव करें",
+                "Patient Reports": "मरीज रिपोर्ट्स",
+                "File": "फाइल",
+                "No reports uploaded by patient yet.": "मरीज द्वारा अभी कोई रिपोर्ट अपलोड नहीं हुई।",
+                "Edit History": "एडिट हिस्ट्री",
+                "Timestamp": "समय",
+                "Nurse ID": "नर्स आईडी",
+                "No updates saved yet.": "अभी कोई अपडेट सेव नहीं हुआ।",
+                "Delete Patient": "मरीज हटाएं",
+                "Logged out successfully.": "सफलतापूर्वक लॉगआउट हुआ।",
+                "Username or phone number already exists.": "यूजरनेम या फोन नंबर पहले से मौजूद है।",
+                "Registration successful. Please login.": "पंजीकरण सफल। कृपया लॉगिन करें।",
+                "Patient login successful.": "मरीज लॉगिन सफल।",
+                "Invalid username or password.": "गलत यूजरनेम या पासवर्ड।",
+                "No patient found with this phone number.": "इस फोन नंबर से कोई मरीज नहीं मिला।",
+                "Invalid report upload request.": "रिपोर्ट अपलोड अनुरोध अमान्य है।",
+                "Report uploaded successfully as PDF.": "रिपोर्ट PDF के रूप में सफलतापूर्वक अपलोड हुई।",
+                "Nurse login successful.": "नर्स लॉगिन सफल।",
+                "Invalid nurse credentials.": "नर्स क्रेडेंशियल्स गलत हैं।",
+                "Patient added successfully.": "मरीज सफलतापूर्वक जोड़ा गया।",
+                "Patient details updated with timestamp.": "मरीज विवरण टाइमस्टैम्प सहित अपडेट हुए।",
+                "Patient deleted.": "मरीज हटाया गया।",
+                "Invalid delete request.": "डिलीट अनुरोध अमान्य है।",
+                "Nurse login required.": "नर्स लॉगिन आवश्यक है।",
+                "Patient login required.": "मरीज लॉगिन आवश्यक है।",
+                "patient": "मरीज",
+                "nurse": "नर्स",
+                "Hawkins Health Lab": "हॉकिन्स हेल्थ लैब",
+                "Gateway Selection | Hawkins Lab": "हॉकिन्स लैब गेटवे चयन",
+                "Hawkins Health Lab Gateway": "हॉकिन्स हेल्थ लैब गेटवे",
+                "Choose your portal before the gate opens.": "गेट खुलने से पहले अपना पोर्टल चुनें।",
+                "Hopper Desk Login": "हॉपर डेस्क लॉगिन",
+                "For staff controlling the ward timeline.": "वार्ड टाइमलाइन संभालने वाले स्टाफ के लिए।",
+                "Enter Staff Desk": "स्टाफ डेस्क में प्रवेश करें",
+                "Returning Subject": "वापसी करने वाला सब्जेक्ट",
+                "If you already have a case file.": "यदि आपके पास पहले से केस फाइल है।",
+                "Open Subject Login": "सब्जेक्ट लॉगिन खोलें",
+                "New Subject": "नया सब्जेक्ट",
+                "Create a new case file.": "नई केस फाइल बनाएं।",
+                "Create Subject File": "सब्जेक्ट फाइल बनाएं",
+                "Signed in as": "साइन इन यूजर",
+                "Exit": "बाहर निकलें",
+                "Staff desk login required.": "स्टाफ डेस्क लॉगिन आवश्यक है।",
+                "Subject login required.": "सब्जेक्ट लॉगिन आवश्यक है।",
+                "Exited the Hawkins system.": "हॉकिन्स सिस्टम से सफलतापूर्वक बाहर निकले।",
+                "Username or contact number already exists.": "यूजरनेम या संपर्क नंबर पहले से मौजूद है।",
+                "Case file created. Please sign in.": "केस फाइल बन गई। कृपया साइन इन करें।",
+                "Subject login successful.": "सब्जेक्ट लॉगिन सफल।",
+                "Invalid credentials.": "क्रेडेंशियल्स अमान्य हैं।",
+                "No subject found with this contact number.": "इस संपर्क नंबर से कोई सब्जेक्ट नहीं मिला।",
+                "Staff desk login successful.": "स्टाफ डेस्क लॉगिन सफल।",
+                "Invalid staff credentials.": "स्टाफ क्रेडेंशियल्स अमान्य हैं।",
+                "Subject file added successfully.": "सब्जेक्ट फाइल सफलतापूर्वक जोड़ी गई।",
+                "Subject file updated with timeline timestamp.": "सब्जेक्ट फाइल टाइमलाइन टाइमस्टैम्प के साथ अपडेट हुई।",
+                "Subject file deleted.": "सब्जेक्ट फाइल हटाई गई।",
+                "Subject Dashboard | Hawkins Lab": "सब्जेक्ट डैशबोर्ड | हॉकिन्स लैब",
+                "Subject Dashboard": "सब्जेक्ट डैशबोर्ड",
+                "Family or subject can view staff-updated care details and uploaded reports.": "परिवार या सब्जेक्ट स्टाफ द्वारा अपडेट की गई केयर डिटेल्स और अपलोड की गई रिपोर्ट्स देख सकते हैं।",
+                "Upload Report (Subject Only)": "रिपोर्ट अपलोड करें (केवल सब्जेक्ट)",
+                "Control Room | Hawkins Lab": "कंट्रोल रूम | हॉकिन्स लैब",
+                "Hopper Desk Control Room": "हॉपर डेस्क कंट्रोल रूम",
+                "Subject roster with room assignments. Open any file to update care logs.": "रूम असाइनमेंट के साथ सब्जेक्ट सूची। केयर लॉग अपडेट करने के लिए कोई भी फाइल खोलें।",
+                "Add New Subject": "नया सब्जेक्ट जोड़ें",
+                "Hospital Code:": "अस्पताल कोड:",
+                "Hospital Code": "अस्पताल कोड",
+                "Subject Name": "सब्जेक्ट नाम",
+                "Room": "रूम",
+                "Username": "यूजरनेम",
+                "Status": "स्थिति",
+                "Discharged At": "छुट्टी का समय",
+                "Action": "कार्य",
+                "Actions": "कार्य",
+                "Discharged": "डिस्चार्ज",
+                "Admitted": "भर्ती",
+                "Open File": "फाइल खोलें",
+                "No subject files found.": "कोई सब्जेक्ट फाइल नहीं मिली।",
+                "No subject files found for this hospital code.": "इस अस्पताल कोड के लिए कोई सब्जेक्ट फाइल नहीं मिली।",
+                "Add Subject File | Hopper Desk": "सब्जेक्ट फाइल जोड़ें | हॉपर डेस्क",
+                "Subject File | Hopper Desk": "सब्जेक्ट फाइल | हॉपर डेस्क",
+                "Staff can create a subject file with patient name, contact number, and room number. Existing app users with the same contact number can also be linked to your logged-in hospital code.": "स्टाफ मरीज का नाम, संपर्क नंबर और रूम नंबर के साथ सब्जेक्ट फाइल बना सकता है। उसी संपर्क नंबर वाले पहले से मौजूद ऐप यूजर को भी आपके लॉग-इन अस्पताल कोड से जोड़ा जा सकता है।",
+                "Subject Username:": "सब्जेक्ट यूजरनेम:",
+                "Contact:": "संपर्क:",
+                "Room Assignment": "रूम असाइनमेंट",
+                "Medication Log": "दवा लॉग",
+                "Injection Log": "इंजेक्शन लॉग",
+                "Prescription Log": "प्रिस्क्रिप्शन लॉग",
+                "Field Notes": "फील्ड नोट्स",
+                "Save Case Log": "केस लॉग सेव करें",
+                "Subject Reports": "सब्जेक्ट रिपोर्ट्स",
+                "Report File": "रिपोर्ट फाइल",
+                "Timeline History": "टाइमलाइन हिस्ट्री",
+                "Logged At": "लॉग समय",
+                "Staff ID": "स्टाफ आईडी",
+                "Updated By": "अपडेट किया गया द्वारा",
+                "No timeline updates saved yet.": "अभी कोई टाइमलाइन अपडेट सेव नहीं हुआ।",
+                "No reports uploaded by this subject yet.": "इस सब्जेक्ट द्वारा अभी कोई रिपोर्ट अपलोड नहीं की गई है।",
+                "Mark as Discharged": "डिस्चार्ज के रूप में चिन्हित करें",
+                "Delete Subject File": "सब्जेक्ट फाइल हटाएं",
+                "Back to control room": "कंट्रोल रूम पर वापस जाएं",
+                "Subject Portal": "सब्जेक्ट पोर्टल",
+                "Subject Portal | Hawkins Lab": "सब्जेक्ट पोर्टल | हॉकिन्स लैब",
+                "Select an option below.": "नीचे एक विकल्प चुनें।",
+                "Track your care log, supply ledger, reports, and scanner tools.": "अपना केयर लॉग, सप्लाई लेजर, रिपोर्ट्स और स्कैनर टूल्स ट्रैक करें।",
+                "Room Assignment": "रूम असाइनमेंट",
+                "Unassigned": "असाइन नहीं",
+                "Total Supplies": "कुल सप्लाई",
+                "Last Care Update": "अंतिम केयर अपडेट",
+                "Current Care Log": "वर्तमान केयर लॉग",
+                "Current Care Log | Subject": "वर्तमान केयर लॉग | सब्जेक्ट",
+                "View staff-updated medications, injections, and prescriptions.": "स्टाफ द्वारा अपडेट की गई दवाएं, इंजेक्शन और प्रिस्क्रिप्शन देखें।",
+                "Enter your hospital code to register this admission before continuing.": "आगे बढ़ने से पहले इस भर्ती को दर्ज करने के लिए अपना अस्पताल कोड दर्ज करें।",
+                "Register Code": "कोड दर्ज करें",
+                "Last Updated By": "अंतिम बार अपडेट किया गया द्वारा",
+                "No nurse update yet": "अभी नर्स द्वारा कोई अपडेट नहीं",
+                "Shared Reports (Visible to Nurse)": "साझा रिपोर्ट्स (नर्स को दिखाई देंगी)",
+                "Upload Report (PDF/JPG/PNG)": "रिपोर्ट अपलोड करें (PDF/JPG/PNG)",
+                "Upload Shared Report": "साझा रिपोर्ट अपलोड करें",
+                "No shared reports yet.": "अभी कोई साझा रिपोर्ट नहीं है।",
+                "Supply Ledger": "सप्लाई लेजर",
+                "Report Vault": "रिपोर्ट वॉल्ट",
+                "Report Vault | Subject": "रिपोर्ट वॉल्ट | सब्जेक्ट",
+                "Store your personal medical documents here. Only you can view these files.": "अपने निजी मेडिकल दस्तावेज यहां रखें। इन फाइलों को केवल आप देख सकते हैं।",
+                "Personal Medical Documents (Only You Can View)": "निजी मेडिकल दस्तावेज (केवल आप देख सकते हैं)",
+                "Upload Personal Document (PDF/JPG/PNG)": "निजी दस्तावेज अपलोड करें (PDF/JPG/PNG)",
+                "Upload Personal Document": "निजी दस्तावेज अपलोड करें",
+                "Delete": "हटाएं",
+                "No personal documents yet.": "अभी कोई निजी दस्तावेज नहीं है।",
+                "X-Ray Scanner": "एक्स-रे स्कैनर",
+                "X-Ray Scanner | Subject": "एक्स-रे स्कैनर | सब्जेक्ट",
+                "Scanner module will be connected soon.": "स्कैनर मॉड्यूल जल्द ही जोड़ा जाएगा।",
+                "No updates yet": "अभी कोई अपडेट नहीं",
+                "Upload to Vault": "वॉल्ट में अपलोड करें",
+                "Replace File": "फाइल बदलें",
+                "No reports in the vault yet.": "अभी वॉल्ट में कोई रिपोर्ट नहीं है।",
+                "Supply Ledger | Subject": "सप्लाई लेजर | सब्जेक्ट",
+                "Add, edit, and delete your treatment cost entries.": "अपने उपचार खर्च की एंट्रियां जोड़ें, एडिट करें और हटाएं।",
+                "Supply Type": "सप्लाई प्रकार",
+                "Note": "नोट",
+                "Amount (Rs.)": "राशि (रु.)",
+                "Amount": "राशि",
+                "Add Entry": "एंट्री जोड़ें",
+                "Total Spend: Rs.": "कुल खर्च: रु.",
+                "Logged At": "लॉग समय",
+                "Edit Entry": "एंट्री एडिट करें",
+                "Delete Entry": "एंट्री हटाएं",
+                "No ledger entries yet.": "अभी कोई लेजर एंट्री नहीं है।",
+                "Edit Ledger Entry | Subject": "लेजर एंट्री एडिट | सब्जेक्ट",
+                "Edit Ledger Entry": "लेजर एंट्री एडिट करें",
+                "Update supply type, note, and amount.": "सप्लाई प्रकार, नोट और राशि अपडेट करें।",
+                "Save Entry": "एंट्री सेव करें",
+                "Cancel": "रद्द करें",
+                "Contact Number": "संपर्क नंबर",
+                "Back to gateway": "गेटवे पर वापस जाएं"
+            };
+
+            const textMapEn = Object.fromEntries(
+                Object.entries(textMapHi).map(([key, value]) => [value, key])
+            );
+
+            const keyMap = {
+                en: { logged_in_as: "Signed in as", logout: "Exit" },
+                hi: { logged_in_as: "साइन इन यूजर", logout: "बाहर निकलें" }
+            };
+
+            const placeholderMapHi = {
+                "Enter username": "यूजरनेम दर्ज करें",
+                "Enter password": "पासवर्ड दर्ज करें",
+                "Enter full name": "पूरा नाम दर्ज करें",
+                "Enter phone number": "फोन नंबर दर्ज करें",
+                "Choose username": "यूजरनेम चुनें",
+                "Create password": "पासवर्ड बनाएं",
+                "Re-enter password": "पासवर्ड दोबारा दर्ज करें",
+                "Enter registered phone number": "रजिस्टर्ड फोन नंबर दर्ज करें",
+                "Enter hospital code": "अस्पताल कोड दर्ज करें",
+                "Room cost / Medicine cost": "रूम खर्च / दवा खर्च",
+                "Optional field note": "वैकल्पिक फील्ड नोट"
+            };
+
+            const placeholderMapEn = Object.fromEntries(
+                Object.entries(placeholderMapHi).map(([key, value]) => [value, key])
+            );
+
+            function translateTextNodes(lang) {
+                const map = lang === "hi" ? textMapHi : textMapEn;
+                const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                const skipTags = new Set(["SCRIPT", "STYLE", "TEXTAREA"]);
+                let node;
+                while ((node = walker.nextNode())) {
+                    const parent = node.parentElement;
+                    if (!parent || skipTags.has(parent.tagName)) {
+                        continue;
+                    }
+                    const value = node.nodeValue;
+                    const trimmed = value.trim();
+                    if (!trimmed || !map[trimmed]) {
+                        continue;
+                    }
+                    const leading = value.slice(0, value.indexOf(trimmed));
+                    const trailing = value.slice(value.indexOf(trimmed) + trimmed.length);
+                    node.nodeValue = leading + map[trimmed] + trailing;
+                }
+            }
+
+            function translateStaticKeys(lang) {
+                const dict = keyMap[lang] || keyMap.en;
+                document.querySelectorAll("[data-i18n]").forEach((el) => {
+                    const key = el.getAttribute("data-i18n");
+                    if (dict[key]) {
+                        el.textContent = dict[key];
+                    }
+                });
+            }
+
+            function translatePlaceholders(lang) {
+                const map = lang === "hi" ? placeholderMapHi : placeholderMapEn;
+                document.querySelectorAll("input[placeholder], textarea[placeholder]").forEach((el) => {
+                    const current = el.getAttribute("placeholder");
+                    if (map[current]) {
+                        el.setAttribute("placeholder", map[current]);
+                    }
+                });
+            }
+
+            function applyLanguage(lang) {
+                const normalized = lang === "hi" ? "hi" : "en";
+                document.documentElement.lang = normalized;
+                translateStaticKeys(normalized);
+                translateTextNodes(normalized);
+                translatePlaceholders(normalized);
+                document.querySelectorAll(".lang-btn").forEach((btn) => {
+                    btn.classList.toggle("active", btn.getAttribute("data-lang") === normalized);
+                });
+                localStorage.setItem(STORAGE_KEY, normalized);
+            }
+
+            const saved = localStorage.getItem(STORAGE_KEY) || "en";
+            applyLanguage(saved);
+            document.querySelectorAll(".lang-btn").forEach((btn) => {
+                btn.addEventListener("click", function () {
+                    applyLanguage(btn.getAttribute("data-lang"));
+                });
+            });
+        })();
+
+        (function () {
+            const audio = document.getElementById("bg-audio");
+            if (!audio) {
+                return;
+            }
+
+            const STATE_KEY = "hm_bg_audio_state";
+            let restoredTime = 0;
+            let autoplayBlocked = false;
+
+            function safePlay() {
+                return audio.play()
+                    .then(function () {
+                        autoplayBlocked = false;
+                        return true;
+                    })
+                    .catch(function () {
+                        autoplayBlocked = true;
+                        // Ignore autoplay block; user interaction handlers retry.
+                        return false;
+                    });
+            }
+
+            function saveState() {
+                const state = {
+                    time: Number(audio.currentTime || 0),
+                    savedAt: Date.now(),
+                    wasPlaying: !audio.paused
+                };
+                sessionStorage.setItem(STATE_KEY, JSON.stringify(state));
+            }
+
+            function applyRestoredTime() {
+                if (restoredTime <= 0) {
+                    return;
+                }
+
+                const duration = Number(audio.duration || 0);
+                if (duration > 0) {
+                    audio.currentTime = restoredTime % duration;
+                    return;
+                }
+                audio.currentTime = restoredTime;
+            }
+
+            function restoreState() {
+                const raw = sessionStorage.getItem(STATE_KEY);
+                if (!raw) {
+                    safePlay();
+                    return;
+                }
+
+                try {
+                    const parsed = JSON.parse(raw);
+                    const base = Number(parsed.time || 0);
+                    const savedAt = Number(parsed.savedAt || 0);
+                    const wasPlaying = Boolean(parsed.wasPlaying);
+                    const elapsedSeconds = savedAt > 0 ? (Date.now() - savedAt) / 1000 : 0;
+
+                    restoredTime = wasPlaying ? base + Math.max(0, elapsedSeconds) : base;
+                    if (!Number.isFinite(restoredTime) || restoredTime < 0) {
+                        restoredTime = 0;
+                    }
+                    applyRestoredTime();
+                    if (wasPlaying) {
+                        safePlay();
+                    } else {
+                        autoplayBlocked = true;
+                    }
+                } catch (_) {
+                    safePlay();
+                }
+            }
+
+            audio.addEventListener("loadedmetadata", applyRestoredTime, { once: true });
+            window.addEventListener("pagehide", saveState);
+            window.addEventListener("beforeunload", saveState);
+            restoreState();
+
+            // Try unlocking audio as early as possible in the gesture lifecycle.
+            document.addEventListener("pointerdown", safePlay, { capture: true });
+            document.addEventListener("keydown", safePlay, { capture: true });
+            document.addEventListener("touchstart", safePlay, { capture: true });
+
+            // If user clicks a link while autoplay is blocked, start audio first then navigate.
+            document.addEventListener("click", function (event) {
+                if (!autoplayBlocked) {
+                    return;
+                }
+                if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                    return;
+                }
+
+                const link = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+                if (!link || link.target === "_blank") {
+                    return;
+                }
+
+                event.preventDefault();
+                const destination = link.href;
+                safePlay().finally(function () {
+                    saveState();
+                    window.location.href = destination;
+                });
+            }, { capture: true });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+{% extends "patient_portal_base.html" %}
+{% block title %}Report Vault | Subject{% endblock %}
+
+{% block portal_content %}
+<h1>Report Vault</h1>
+<p>Store your personal medical documents here. Only you can view these files.</p>
+
+<h2 style="margin-top: 1.5rem;">Personal Medical Documents (Only You Can View)</h2>
+<form method="post" action="{{ url_for('patient_upload_personal_document') }}" enctype="multipart/form-data">
+    {{ personal_upload_form.hidden_tag() }}
+    <div class="form-group">
+        <label for="{{ personal_upload_form.report_file.id }}">Upload Personal Document (PDF/JPG/PNG)</label>
+        {{ personal_upload_form.report_file(id=personal_upload_form.report_file.id, accept=".pdf,.jpg,.jpeg,.png", required=True) }}
+    </div>
+    <button class="btn btn-inline" type="submit">Upload Personal Document</button>
+</form>
+
+<table style="margin-top: 1rem;">
+    <thead>
+        <tr>
+            <th>File</th>
+            <th>Uploaded At</th>
+            <th>Open</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for document in personal_documents %}
+        <tr>
+            <td>{{ document.original_filename }}</td>
+            <td>{{ document.uploaded_at | ist_datetime }}</td>
+            <td>
+                <a href="{{ url_for('view_personal_document', filename=document.saved_filename) }}" target="_blank">Open</a>
+            </td>
+            <td>
+                <form method="post" action="{{ url_for('patient_delete_personal_document', document_id=document.id) }}">
+                    <button class="btn btn-danger btn-inline" type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="4">No personal documents yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

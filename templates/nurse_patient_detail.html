@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Subject File | Hopper Desk{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1>{{ patient.patient_name }}</h1>
+    <p>Update medication logs, injection logs, report files, and prescriptions. Every save creates a timeline entry.</p>
+    <p class="meta">Subject Username: {{ patient.username }} | Contact: {{ patient.phone_number }}</p>
+    <p class="meta">Hospital Code: {{ patient.hospital_code or "-" }} | Status: {{ "Discharged" if patient.is_discharged else "Admitted" }}</p>
+    {% if patient.discharged_at %}
+    <p class="meta">Discharged At: {{ patient.discharged_at | ist_datetime }}</p>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('nurse_patient_detail', patient_id=patient.id) }}">
+        {{ record_form.hidden_tag() }}
+        <div class="form-group">
+            <label for="room_number">Room Assignment</label>
+            <input id="room_number" name="room_number" type="text" value="{{ record_form.room_number.data or '' }}" required>
+        </div>
+        <div class="form-group">
+            <label for="medications">Medication Log</label>
+            <textarea id="medications" name="medications">{{ record_form.medications.data or '' }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="injections">Injection Log</label>
+            <textarea id="injections" name="injections">{{ record_form.injections.data or '' }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="prescriptions">Prescription Log</label>
+            <textarea id="prescriptions" name="prescriptions">{{ record_form.prescriptions.data or '' }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="notes">Field Notes</label>
+            <textarea id="notes" name="notes">{{ record_form.notes.data or '' }}</textarea>
+        </div>
+        <button class="btn btn-inline" type="submit">Save Case Log</button>
+    </form>
+
+    <h2 style="margin-top: 1.5rem;">Subject Reports</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Report File</th>
+                <th>Uploaded At</th>
+                <th>Open</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in reports %}
+            <tr>
+                <td>{{ report.original_filename }}</td>
+                <td>{{ report.uploaded_at | ist_datetime }}</td>
+                <td><a href="{{ url_for('view_report', filename=report.saved_filename) }}" target="_blank">Open</a></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3">No reports uploaded by this subject yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 style="margin-top: 1.5rem;">Timeline History</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Logged At</th>
+                <th>Updated By</th>
+                <th>Room</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in updates %}
+            <tr>
+                <td>{{ item.edited_at | ist_datetime }}</td>
+                <td>{{ item.nurse.username if item.nurse else ("ID " ~ item.nurse_id) }}</td>
+                <td>{{ item.room_number or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3">No timeline updates saved yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <form method="post" action="{{ url_for('nurse_discharge_patient', patient_id=patient.id) }}" style="margin-top: 1.5rem;">
+        {{ delete_form.hidden_tag() }}
+        <button class="btn btn-inline" type="submit">Mark as Discharged</button>
+    </form>
+
+    <form method="post" action="{{ url_for('nurse_delete_patient', patient_id=patient.id) }}" style="margin-top: 1.5rem;">
+        {{ delete_form.hidden_tag() }}
+        <button class="btn btn-danger btn-inline" type="submit">Delete Subject File</button>
+    </form>
+
+    <div class="links">
+        <a href="{{ url_for('nurse_dashboard') }}">Back to control room</a>
+    </div>
+</section>
+{% endblock %}

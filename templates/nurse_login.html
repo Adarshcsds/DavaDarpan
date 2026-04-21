@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Staff Desk Login | Hawkins Lab{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<section class="card" style="max-width: 520px; margin: 0 auto;">
+    <h1>Hopper Desk Login</h1>
+    <p>Use staff credentials to access the control room.</p>
+
+    <form method="post" action="{{ url_for('nurse_login') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="hospital_code">Hospital Code</label>
+            <input id="hospital_code" name="hospital_code" type="text" placeholder="Enter hospital code" required>
+        </div>
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" placeholder="Enter username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" placeholder="Enter password" required>
+        </div>
+
+        <button class="btn" type="submit">Enter Control Room</button>
+    </form>
+
+    <div class="links">
+        <a href="{{ url_for('home') }}">Back to gateway</a>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "patient_portal_base.html" %}
+{% block title %}Subject Chatbot | Hawkins Lab{% endblock %}
+{% block extra_head %}
+{{ super() }}
+<style>
+    .chat-summary-card,
+    .chat-thread-card,
+    .chat-message-card {
+        background: rgba(10, 12, 16, 0.34) !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24) !important;
+        backdrop-filter: blur(22px) saturate(140%);
+        -webkit-backdrop-filter: blur(22px) saturate(140%);
+    }
+
+    .chat-message-card {
+        border-radius: 18px;
+    }
+
+    .chat-message-card.user {
+        background: linear-gradient(135deg, rgba(13, 71, 117, 0.42), rgba(10, 12, 16, 0.34)) !important;
+    }
+
+    .chat-message-card.assistant {
+        background: linear-gradient(135deg, rgba(130, 36, 18, 0.34), rgba(10, 12, 16, 0.34)) !important;
+    }
+
+    .chat-role {
+        margin-bottom: 0.45rem;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(255, 255, 255, 0.72);
+    }
+
+    .chat-body {
+        white-space: pre-wrap;
+        line-height: 1.7;
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block portal_content %}
+<span class="portal-kicker">AI Chat</span>
+<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+    <img src="{{ url_for('static', filename='images/download.jpg') }}" alt="Virtual Nurse" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(15, 92, 138, 0.16); box-shadow: 0 12px 22px rgba(15, 92, 138, 0.16);">
+    <div>
+        <h1 style="margin-bottom: 0.3rem;">Virtual Nurse Chatbot</h1>
+        <p style="margin-bottom: 0;">Ask questions about your care log, room details, reports, or hospital process. Provider: {{ chatbot_provider }}</p>
+    </div>
+</div>
+
+<section class="card chat-summary-card" style="padding: 1.1rem; margin-top: 1.25rem;">
+    <div class="grid">
+        <div>
+            <p style="margin-bottom: 0.35rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em;">Subject</p>
+            <strong>{{ patient.patient_name }}</strong>
+        </div>
+        <div>
+            <p style="margin-bottom: 0.35rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em;">Room</p>
+            <strong>{{ patient.room_number or "Unassigned" }}</strong>
+        </div>
+    </div>
+    <p style="margin-top: 1rem; margin-bottom: 0;">This assistant is for support only and should not replace direct medical advice from hospital staff.</p>
+</section>
+
+<section class="card chat-thread-card" style="margin-top: 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+        <h2 style="margin-bottom: 0;">Conversation</h2>
+        <form method="post" action="{{ url_for('patient_chatbot') }}">
+            <input type="hidden" name="action" value="clear">
+            <input type="hidden" name="ui_language" value="{{ ui_language or 'en' }}" data-chat-lang>
+            <button class="btn btn-secondary btn-inline" type="submit">Clear Chat</button>
+        </form>
+    </div>
+
+    <div style="display: grid; gap: 0.9rem; margin-bottom: 1.25rem;">
+        {% for item in chat_history %}
+        <article class="card chat-message-card {{ item.role }}" style="padding: 1rem;">
+            <p class="chat-role">{{ "You" if item.role == "user" else "Assistant" }}</p>
+            <div class="chat-body">{{ item.message }}</div>
+        </article>
+        {% else %}
+        <article class="card chat-message-card assistant" style="padding: 1rem;">
+            <p style="margin-bottom: 0; color: #ffffff;">Try asking: "What is my current room assignment?", "Summarize my care log", or "How do I upload reports?"</p>
+        </article>
+        {% endfor %}
+    </div>
+
+    <form method="post" action="{{ url_for('patient_chatbot') }}" enctype="multipart/form-data">
+        <input type="hidden" name="ui_language" value="{{ ui_language or 'en' }}" data-chat-lang>
+        <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" placeholder="Ask the chatbot something helpful...">{{ draft_message or "" }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="report_file">Attach Report For Analysis (PDF/JPG/PNG)</label>
+            <input id="report_file" name="report_file" type="file" accept=".pdf,.jpg,.jpeg,.png">
+        </div>
+        <p style="font-size: 0.9rem;">You can ask a question, upload a report, or do both together. The chatbot can summarize visible report values, but hospital staff should confirm the interpretation.</p>
+        <button class="btn" type="submit">Send Message</button>
+    </form>
+</section>
+<script>
+    (function () {
+        const lang = localStorage.getItem("hm_lang") || "en";
+        document.querySelectorAll("[data-chat-lang]").forEach(function (input) {
+            input.value = lang === "hi" ? "hi" : "en";
+        });
+    })();
+</script>
+{% endblock %}

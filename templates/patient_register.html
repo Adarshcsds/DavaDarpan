@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Create Subject File | Hawkins Lab{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block content %}
+<section class="card" style="max-width: 520px; margin: 0 auto;">
+    <h1>New Subject Registration</h1>
+    <p>Enter your details to open or claim your case file. If the nurse already created your treatment file, register with the same phone number to continue with that file.</p>
+    <form method="post" action="{{ url_for('patient_register') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="patient_name">Subject Name</label>
+            {{ form.patient_name(
+                id="patient_name",
+                type="text",
+                placeholder="Enter full name",
+                required=true
+            ) }}
+        </div>
+        <div class="form-group">
+            <label for="phone_number">Contact Number</label>
+            {{ form.phone_number(
+                id="phone_number",
+                type="tel",
+                placeholder="Enter phone number",
+                required=true
+            ) }}
+        </div>
+        <div class="form-group">
+            <label for="username">Username</label>
+            {{ form.username(
+                id="username",
+                type="text",
+                placeholder="Choose username",
+                autocomplete="username",
+                required=true
+            ) }}
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            {{ form.password(
+                id="password",
+                type="password",
+                placeholder="Create password",
+                autocomplete="new-password",
+                required=true
+            ) }}
+        </div>
+        <div class="form-group">
+            <label for="confirm_password">Confirm Password</label>
+            {{ form.confirm_password(
+                id="confirm_password",
+                type="password",
+                placeholder="Re-enter password",
+                autocomplete="new-password",
+                required=true
+            ) }}
+        </div>
+        {{ form.submit(class_="btn") }}
+    </form>
+    <div class="links">
+        <a href="{{ url_for('patient_login') }}">Already have a file? Sign in</a>
+        <a href="{{ url_for('home') }}">Back to gateway</a>
+    </div>
+</section>
+{% endblock %}
+

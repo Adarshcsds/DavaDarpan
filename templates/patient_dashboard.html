@@ -1,0 +1,76 @@
+{% extends "patient_portal_base.html" %}
+{% block title %}Subject Dashboard | Hawkins Lab{% endblock %}
+
+{% block portal_content %}
+<span class="portal-kicker">Subject Portal</span>
+<h1>Subject Dashboard</h1>
+<p>Track your care log, reports, expenses, and tools from one cleaner control screen.</p>
+
+<section class="grid" style="margin-top: 1.25rem;">
+    <article class="card" style="padding: 1.1rem;">
+        <p style="margin-bottom: 0.35rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em;">Subject Name</p>
+        <h2 style="margin-bottom: 0;">{{ patient.patient_name }}</h2>
+    </article>
+    <article class="card" style="padding: 1.1rem;">
+        <p style="margin-bottom: 0.35rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em;">Room Assignment</p>
+        <h2 style="margin-bottom: 0;">{{ patient.room_number or "Unassigned" }}</h2>
+    </article>
+    <article class="card" style="padding: 1.1rem;">
+        <p style="margin-bottom: 0.35rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em;">Total Supplies</p>
+        <h2 style="margin-bottom: 0;">Rs. {{ '%.2f'|format(patient.expenses|sum(attribute='amount')) }}</h2>
+    </article>
+    <article class="card" style="padding: 1.1rem;">
+        <p style="margin-bottom: 0.35rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em;">Last Care Update</p>
+        <h2 style="margin-bottom: 0; font-size: 1rem;">{{ care_record.updated_at | ist_datetime if care_record and care_record.updated_at else "No updates yet" }}</h2>
+    </article>
+</section>
+
+<section class="portal-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
+    <a class="portal-option" href="{{ url_for('patient_treatment') }}">
+        <span class="portal-option-mark" style="padding: 0; overflow: hidden; background: #fff;">
+            <img src="{{ url_for('static', filename='images/download.png') }}" alt="Current Care Log" style="width: 100%; height: 100%; object-fit: cover;">
+        </span>
+        <strong>Current Care Log</strong>
+        <span>View medications, injections, prescriptions, and the latest staff notes.</span>
+    </a>
+    <a class="portal-option" href="{{ url_for('patient_expenses') }}">
+        <span class="portal-option-mark" style="padding: 0; overflow: hidden; background: #fff;">
+            <img src="{{ url_for('static', filename='images/supplyledger.png') }}" alt="Supply Ledger" style="width: 100%; height: 100%; object-fit: cover;">
+        </span>
+        <strong>Supply Ledger</strong>
+        <span>Track treatment costs, add entries, and keep an eye on your running total.</span>
+    </a>
+    <a class="portal-option" href="{{ url_for('patient_reports') }}">
+        <span class="portal-option-mark" style="padding: 0; overflow: hidden; background: #fff;">
+            <img src="{{ url_for('static', filename='images/report.png') }}" alt="Report Vault" style="width: 100%; height: 100%; object-fit: cover;">
+        </span>
+        <strong>Report Vault</strong>
+        <span>Store personal documents and review uploaded medical reports in one place.</span>
+    </a>
+    <a class="portal-option" href="{{ url_for('patient_xray') }}">
+        <span class="portal-option-mark" style="padding: 0; overflow: hidden; background: #fff;">
+            <img src="{{ url_for('static', filename='images/xray.png') }}" alt="X-Ray Scanner" style="width: 100%; height: 100%; object-fit: cover;">
+        </span>
+        <strong>X-Ray Scanner</strong>
+        <span>Jump into the scanner area as soon as that module is needed.</span>
+    </a>
+    <a class="portal-option" href="{{ url_for('patient_chatbot') }}">
+        <span class="portal-option-mark" style="padding: 0; overflow: hidden; background: #fff;">
+            <img src="{{ url_for('static', filename='images/download.jpg') }}" alt="Virtual Nurse" style="width: 100%; height: 100%; object-fit: cover;">
+        </span>
+        <strong>Virtual Nurse</strong>
+        <span>Ask broad questions about your room, care log, reports, portal steps, and get report-analysis help.</span>
+    </a>
+</section>
+
+<a
+    href="{{ url_for('patient_chatbot') }}"
+    style="position: fixed; right: 20px; bottom: 20px; z-index: 999; display: flex; align-items: center; gap: 0.85rem; padding: 0.8rem 1rem 0.8rem 0.8rem; border-radius: 999px; text-decoration: none; background: linear-gradient(135deg, #ffffff, #eef7ff); box-shadow: 0 18px 36px rgba(15, 92, 138, 0.22); border: 1px solid rgba(15, 92, 138, 0.22);"
+>
+    <img src="{{ url_for('static', filename='images/download.jpg') }}" alt="Virtual Nurse" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(15, 92, 138, 0.16);">
+    <span style="display: block;">
+        <strong style="display: block; color: var(--text); font-size: 0.98rem;">Virtual Nurse</strong>
+        <span style="display: block; color: var(--muted); font-size: 0.84rem;">Chat or analyze reports</span>
+    </span>
+</a>
+{% endblock %}
